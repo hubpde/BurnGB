@@ -7,7 +7,7 @@
 
 import SwiftUI
 import UIKit
-import ActivityKit
+@preconcurrency import ActivityKit
 
 /// BurnGB 设置页。
 struct SettingsView: View {

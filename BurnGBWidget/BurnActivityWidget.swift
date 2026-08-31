@@ -7,7 +7,7 @@
 
 import SwiftUI
 import WidgetKit
-import ActivityKit
+@preconcurrency import ActivityKit
 import BurnGBCore
 
 /// BurnGB 实时活动 Widget。

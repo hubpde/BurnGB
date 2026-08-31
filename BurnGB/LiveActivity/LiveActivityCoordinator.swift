@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import ActivityKit
+@preconcurrency import ActivityKit
 import BurnGBCore
 
 /// 串行管理一个 BurnGB 实时活动，避免更新乱序和任务积压。

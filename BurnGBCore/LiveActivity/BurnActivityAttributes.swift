@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import ActivityKit
+@preconcurrency import ActivityKit
 
 /// BurnGB 灵动岛与锁屏实时活动的数据模型。
 /// 只传递原始事实数据，格式化、动态字体与过期状态由 Widget 完成。
