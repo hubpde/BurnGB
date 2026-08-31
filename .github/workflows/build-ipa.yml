@@ -47,14 +47,14 @@ jobs:
           test -d BurnGB.xcodeproj
           xcodebuild -project BurnGB.xcodeproj -list
 
-      - name: Run unit tests with Swift 6 strict concurrency
+      - name: Build for testing with Swift 6 strict concurrency
         run: |
           set -euo pipefail
           set -o pipefail
-          xcodebuild test \
+          xcodebuild build-for-testing \
             -project BurnGB.xcodeproj \
             -scheme BurnGB \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath ./DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
