@@ -2,12 +2,12 @@
 //  LiquidGlassSlider.swift
 //  BurnGB
 //
-//  Created for BurnGB - iOS 26 Liquid Glass Edition.
+//  Created for BurnGB - iOS Native Edition.
 //
 
 import SwiftUI
 
-/// 极简液态玻璃风格滑块调节组件
+/// 官方原生滑块调节组件
 public struct LiquidGlassSlider: View {
     @Binding public var value: Double
     public var range: ClosedRange<Double>
@@ -20,9 +20,9 @@ public struct LiquidGlassSlider: View {
         value: Binding<Double>,
         in range: ClosedRange<Double> = 1...64,
         step: Double = 1,
-        label: String = "线程并发数",
+        label: String = "并发线程数",
         displayValue: String = "",
-        tintColor: Color = LiquidTheme.cyanPrimary
+        tintColor: Color = Color.orange
     ) {
         self._value = value
         self.range = range
@@ -36,19 +36,12 @@ public struct LiquidGlassSlider: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(label)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.primary)
                 Spacer()
-                Text(displayValue.isEmpty ? "\(Int(value))" : displayValue)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                Text(displayValue.isEmpty ? "\(Int(value)) 线程" : displayValue)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundColor(tintColor)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 3)
-                    .background(
-                        Capsule()
-                            .fill(tintColor.opacity(0.12))
-                            .overlay(Capsule().stroke(tintColor.opacity(0.25), lineWidth: 0.6))
-                    )
             }
 
             Slider(value: $value, in: range, step: step)

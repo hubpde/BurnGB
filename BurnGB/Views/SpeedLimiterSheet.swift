@@ -2,12 +2,12 @@
 //  SpeedLimiterSheet.swift
 //  BurnGB
 //
-//  Created for BurnGB - iOS 26 Liquid Glass Edition.
+//  Created for BurnGB - iOS Native Edition.
 //
 
 import SwiftUI
 
-/// 带宽限速设置弹窗视图
+/// 带宽限速设置弹窗视图（标准 iOS Form 表单设计）
 public struct SpeedLimiterSheet: View {
     @Binding public var speedLimitBytesPerSec: Double?
     @Environment(\.dismiss) private var dismiss
@@ -31,121 +31,79 @@ public struct SpeedLimiterSheet: View {
 
     public var body: some View {
         NavigationStack {
-            ZStack {
-                LiquidMeshBackground()
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
-                        // 顶部说明卡片
-                        LiquidGlassCard {
-                            HStack(spacing: 12) {
-                                Image(systemName: "speedometer")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(LiquidTheme.cyanPrimary)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("带宽平滑限速")
-                                        .font(.system(size: 15, weight: .bold))
-                                        .foregroundColor(.white)
-                                    Text("限制拉取最高带宽速率，防止占用全部家庭或蜂窝网络")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.6))
-                                }
-                            }
-                        }
-
-                        // 预设档位网格
-                        Text("快捷档位")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.75))
-                            .padding(.horizontal, 4)
-
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                            ForEach(presets, id: \.bytesPerSec) { preset in
-                                Button {
-                                    HapticManager.selection()
-                                    speedLimitBytesPerSec = preset.bytesPerSec
-                                    dismiss()
-                                } label: {
-                                    HStack {
-                                        Text(preset.label)
-                                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                            .foregroundColor(.white)
-                                        Spacer()
-                                        if let current = speedLimitBytesPerSec, abs(current - preset.bytesPerSec) < 100 {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(LiquidTheme.cyanPrimary)
-                                        }
-                                    }
-                                    .padding(.vertical, 12)
-                                    .padding(.horizontal, 14)
-                                    .liquidGlass(
-                                        cornerRadius: 14,
-                                        innerTint: (speedLimitBytesPerSec ?? 0) == preset.bytesPerSec ? LiquidTheme.cyanPrimary.opacity(0.15) : Color.white.opacity(0.03)
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-
-                        // 自定义限速输入
-                        Text("自定义限速")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.75))
-                            .padding(.horizontal, 4)
-
-                        LiquidGlassCard {
-                            VStack(spacing: 12) {
-                                HStack {
-                                    TextField("输入数值 (如: 80)", text: $customValue)
-                                        .keyboardType(.decimalPad)
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 16, weight: .semibold))
-
-                                    Picker("单位", selection: $customUnit) {
-                                        Text("Mbps").tag("Mbps")
-                                        Text("Gbps").tag("Gbps")
-                                        Text("MB/s").tag("MB/s")
-                                    }
-                                    .pickerStyle(.segmented)
-                                    .frame(width: 170)
-                                }
-
-                                LiquidGlassButton(
-                                    title: "应用限速",
-                                    icon: "checkmark",
-                                    style: .speedCyan
-                                ) {
-                                    applyCustom()
-                                }
-                            }
-                        }
-
-                        // 解除限速按钮
-                        if speedLimitBytesPerSec != nil {
-                            Button {
-                                HapticManager.impact(.medium)
-                                speedLimitBytesPerSec = nil
-                                dismiss()
-                            } label: {
-                                Text("解除限速（全速无限制）")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(LiquidTheme.flamePrimary)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .liquidGlass(cornerRadius: 14, innerTint: LiquidTheme.flamePrimary.opacity(0.06))
-                            }
-                            .buttonStyle(PlainButtonStyle())
+            Form {
+                Section {
+                    HStack(spacing: 12) {
+                        Image(systemName: "speedometer")
+                            .font(.system(size: 24))
+                            .foregroundColor(.blue)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("带宽平滑限速")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text("限制最高拉取速率，防止挤占全部家庭或蜂窝网络。")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .padding(18)
+                    .padding(.vertical, 4)
+                }
+
+                Section(header: Text("快捷预设档位")) {
+                    ForEach(presets, id: \.bytesPerSec) { preset in
+                        Button {
+                            HapticManager.selection()
+                            speedLimitBytesPerSec = preset.bytesPerSec
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Text(preset.label)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                if let current = speedLimitBytesPerSec, abs(current - preset.bytesPerSec) < 100 {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Section(header: Text("自定义限速")) {
+                    HStack {
+                        TextField("输入数值 (如: 80)", text: $customValue)
+                            .keyboardType(.decimalPad)
+
+                        Picker("单位", selection: $customUnit) {
+                            Text("Mbps").tag("Mbps")
+                            Text("Gbps").tag("Gbps")
+                            Text("MB/s").tag("MB/s")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 170)
+                    }
+
+                    Button("应用限速") {
+                        applyCustom()
+                    }
+                    .disabled(customValue.isEmpty)
+                }
+
+                if speedLimitBytesPerSec != nil {
+                    Section {
+                        Button("解除限速（全速无限制）", role: .destructive) {
+                            HapticManager.impact(.medium)
+                            speedLimitBytesPerSec = nil
+                            dismiss()
+                        }
+                    }
                 }
             }
-            .navigationTitle("带宽限速设置")
+            .navigationTitle("带宽限速")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
-                        .foregroundColor(.white.opacity(0.8))
+                    Button("完成") { dismiss() }
                 }
             }
         }

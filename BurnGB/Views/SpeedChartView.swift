@@ -2,12 +2,12 @@
 //  SpeedChartView.swift
 //  BurnGB
 //
-//  Created for BurnGB - iOS 26 Liquid Glass Edition.
+//  Created for BurnGB - iOS Native Edition.
 //
 
 import SwiftUI
 
-/// 极简吞吐速率实时画布曲线图
+/// 官方原生吞吐速率实时曲线图
 public struct SpeedChartView: View {
     /// 历史采样数据序列
     public var samples: [SpeedSample]
@@ -20,27 +20,27 @@ public struct SpeedChartView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Label("实时吞吐走势", systemImage: "chart.xyaxis.line")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.8))
+                Text("实时吞吐走势")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.primary)
                 Spacer()
                 if let latest = samples.last, isRunning {
                     Text(ByteFormatter.formatFullSpeed(latest.bytesPerSec))
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(LiquidTheme.cyanPrimary)
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .foregroundColor(.blue)
                 }
             }
 
             if samples.isEmpty {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color.white.opacity(0.02))
-                    .frame(height: 95)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(uiColor: .tertiarySystemFill).opacity(0.3))
+                    .frame(height: 100)
                     .overlay(
                         Text("等待点火启动测速...")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.3))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
                     )
             } else {
                 GeometryReader { proxy in
@@ -49,16 +49,16 @@ public struct SpeedChartView: View {
                     let maxSpeed = max(samples.map { $0.bytesPerSec }.max() ?? 1.0, 1024 * 1024)
 
                     ZStack {
-                        // 细暗网格线
+                        // 细网格线
                         VStack {
-                            Divider().background(Color.white.opacity(0.06))
+                            Divider()
                             Spacer()
-                            Divider().background(Color.white.opacity(0.06))
+                            Divider()
                             Spacer()
-                            Divider().background(Color.white.opacity(0.06))
+                            Divider()
                         }
 
-                        // 曲线下方微光渐变填充
+                        // 曲线下方淡蓝填充
                         Path { path in
                             guard samples.count > 1 else { return }
                             let stepX = width / CGFloat(max(samples.count - 1, 1))
@@ -75,16 +75,7 @@ public struct SpeedChartView: View {
                             path.addLine(to: CGPoint(x: CGFloat(samples.count - 1) * stepX, y: height))
                             path.closeSubpath()
                         }
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    LiquidTheme.cyanPrimary.opacity(0.2),
-                                    Color.clear
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
+                        .fill(Color.blue.opacity(0.12))
 
                         // 走势折线
                         Path { path in
@@ -103,12 +94,12 @@ public struct SpeedChartView: View {
                             }
                         }
                         .stroke(
-                            LiquidTheme.cyanPrimary,
-                            style: StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round)
+                            Color.blue,
+                            style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
                         )
                     }
                 }
-                .frame(height: 95)
+                .frame(height: 100)
             }
         }
     }

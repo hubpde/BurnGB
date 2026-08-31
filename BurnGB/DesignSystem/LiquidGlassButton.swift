@@ -2,32 +2,30 @@
 //  LiquidGlassButton.swift
 //  BurnGB
 //
-//  Created for BurnGB - iOS 26 Liquid Glass Edition.
+//  Created for BurnGB - iOS Native Edition.
 //
 
 import SwiftUI
 
-/// 按钮样式类型
+/// 原生按钮风格类型
 public enum LiquidButtonStyle {
-    /// 核心点火橙色
+    /// 核心能量橙色（拉取点火）
     case burning
-    /// 科技测速青色
+    /// 科技测速蓝色
     case speedCyan
-    /// 磨砂极简玻璃
+    /// 次要灰色背景
     case frostedGlass
     /// 危险/停止红色
     case danger
 }
 
-/// 极简高质感液态玻璃交互按钮组件
+/// 官方原生高质感按钮组件
 public struct LiquidGlassButton: View {
     public var title: String
     public var icon: String?
     public var style: LiquidButtonStyle
     public var isFullWidth: Bool
     public var action: () -> Void
-
-    @State private var isPressed = false
 
     public init(
         title: String,
@@ -48,77 +46,43 @@ public struct LiquidGlassButton: View {
             HapticManager.impact(.medium)
             action()
         }) {
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .font(.system(size: 17, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                 }
                 Text(title)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(.system(size: 16, weight: .semibold))
             }
-            .foregroundColor(.white)
+            .foregroundColor(foregroundColor)
             .padding(.vertical, 14)
-            .padding(.horizontal, 22)
+            .padding(.horizontal, 20)
             .frame(maxWidth: isFullWidth ? .infinity : nil)
-            .background(backgroundView)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.4),
-                                Color.white.opacity(0.1),
-                                Color.clear
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 0.8
-                    )
-            )
-            .shadow(color: shadowColor, radius: 10, x: 0, y: 5)
-            .scaleEffect(isPressed ? 0.97 : 1.0)
+            .background(backgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .buttonStyle(PlainButtonStyle())
-        ._onButtonGesture { pressing in
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-                isPressed = pressing
-            }
-        } perform: {}
+        .buttonStyle(.plain)
     }
 
-    @ViewBuilder
-    private var backgroundView: some View {
+    private var backgroundColor: Color {
         switch style {
         case .burning:
-            LiquidTheme.burningGradient
+            return Color.orange
         case .speedCyan:
-            LiquidTheme.speedGradient
+            return Color.blue
         case .frostedGlass:
-            ZStack {
-                Rectangle().fill(.ultraThinMaterial)
-                Color.white.opacity(0.06)
-            }
+            return Color(uiColor: .tertiarySystemFill)
         case .danger:
-            LinearGradient(
-                colors: [Color(red: 0.95, green: 0.25, blue: 0.25), Color(red: 0.85, green: 0.15, blue: 0.15)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
+            return Color.red
         }
     }
 
-    private var shadowColor: Color {
+    private var foregroundColor: Color {
         switch style {
-        case .burning:
-            return LiquidTheme.flamePrimary.opacity(0.3)
-        case .speedCyan:
-            return LiquidTheme.cyanPrimary.opacity(0.3)
+        case .burning, .speedCyan, .danger:
+            return .white
         case .frostedGlass:
-            return Color.black.opacity(0.2)
-        case .danger:
-            return Color.red.opacity(0.3)
+            return .primary
         }
     }
 }

@@ -2,10 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- 开启 ProMotion 120Hz 刷新率支持 -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>zh_CN</string>
 	<key>CFBundleDisplayName</key>
 	<string>BurnGB</string>
 	<key>CFBundleExecutable</key>
@@ -24,18 +25,21 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- 网络请求安全配置，允许加载自定义 HTTP/HTTPS 测速节点 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<!-- iOS 官方实时活动（Live Activity）与灵动岛支持 -->
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<!-- 允许实时活动高频频繁更新（Frequent Updates） -->
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
 	<true/>
+	<!-- 后台模式声明（后台拉取与后台处理，不使用音频保活） -->
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>audio</string>
 		<string>fetch</string>
 		<string>processing</string>
 	</array>

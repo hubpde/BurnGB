@@ -2,7 +2,7 @@
 //  HapticManager.swift
 //  BurnGB
 //
-//  Created for BurnGB - iOS 26 Liquid Glass Edition.
+//  Created for BurnGB - iOS Native Edition.
 //
 
 import UIKit
