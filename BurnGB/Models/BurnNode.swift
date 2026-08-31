@@ -7,15 +7,24 @@
 
 import Foundation
 
+/// 测速与流量消耗目标节点模型
 public struct BurnNode: Identifiable, Codable, Hashable {
+    /// 唯一标识符
     public let id: UUID
+    /// 节点显示名称
     public var name: String
+    /// 节点下载 URL 字符串
     public var urlString: String
+    /// 节点分组（如：国内运营商、全球 CDN、自定义）
     public var group: String
+    /// SF Symbols 图标名
     public var iconName: String
+    /// 是否为用户自定义添加的节点
     public var isCustom: Bool
+    /// 最近一次测试的网络延时（毫秒）
     public var lastPingMs: Int?
 
+    /// 解析后的 URL 对象
     public var url: URL? {
         URL(string: urlString)
     }
@@ -39,11 +48,13 @@ public struct BurnNode: Identifiable, Codable, Hashable {
     }
 }
 
+/// 内置预设节点管理器
 public enum NodePresetManager {
+    /// 默认内置的高带宽、高并发测速下载节点列表
     public static let defaultNodes: [BurnNode] = [
-        // 国内运营商与云节点
+        // MARK: - 国内高带宽节点
         BurnNode(
-            name: "和彩云高带宽",
+            name: "和彩云高带宽节点",
             urlString: "https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png",
             group: "国内运营商",
             iconName: "antenna.radiowaves.left.and.right"
@@ -67,7 +78,7 @@ public enum NodePresetManager {
             iconName: "play.circle.fill"
         ),
 
-        // 全球高速 CDN
+        // MARK: - 全球高速 CDN 节点
         BurnNode(
             name: "Cloudflare Speed (100MB)",
             urlString: "https://speed.cloudflare.com/__down?bytes=104857600",

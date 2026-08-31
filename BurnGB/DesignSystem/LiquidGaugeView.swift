@@ -7,15 +7,20 @@
 
 import SwiftUI
 
+/// 极简高质感速率与能量仪表盘组件
+/// 以大号清晰数字为主体，环形微光进度条配合柔和状态脉动，告别花哨杂色
 public struct LiquidGaugeView: View {
+    /// 速率数值文本（如 "124.5"）
     public var speedValue: String
+    /// 速率单位文本（如 "MB/s"）
     public var speedUnit: String
+    /// 比特带宽文本（如 "996.0 Mbps"）
     public var bitrateText: String
-    public var progress: Double // 0.0 to 1.0 (based on speed scale or quota)
+    /// 进度百分比（0.0 ~ 1.0）
+    public var progress: Double
+    /// 引擎是否处于活跃运行中
     public var isRunning: Bool
-    public var flameMode: Bool
 
-    @State private var rotationAngle: Double = 0
     @State private var pulseWave: CGFloat = 1.0
 
     public init(
@@ -23,116 +28,102 @@ public struct LiquidGaugeView: View {
         speedUnit: String,
         bitrateText: String,
         progress: Double = 0.0,
-        isRunning: Bool = false,
-        flameMode: Bool = true
+        isRunning: Bool = false
     ) {
         self.speedValue = speedValue
         self.speedUnit = speedUnit
         self.bitrateText = bitrateText
         self.progress = min(max(progress, 0.0), 1.0)
         self.isRunning = isRunning
-        self.flameMode = flameMode
     }
 
     public var body: some View {
         ZStack {
-            // Background glow halo
+            // 背景极简微弱柔光
             Circle()
                 .fill(
                     RadialGradient(
                         colors: [
-                            (flameMode ? LiquidTheme.flamePrimary : LiquidTheme.cyanPrimary).opacity(isRunning ? 0.35 : 0.08),
+                            (isRunning ? LiquidTheme.flamePrimary : LiquidTheme.cyanPrimary).opacity(isRunning ? 0.18 : 0.04),
                             Color.clear
                         ],
                         center: .center,
-                        startRadius: 40,
-                        endRadius: 130
+                        startRadius: 30,
+                        endRadius: 110
                     )
                 )
-                .frame(width: 260, height: 260)
+                .frame(width: 230, height: 230)
                 .scaleEffect(isRunning ? pulseWave : 1.0)
 
-            // Outer Track (Frosted glass circle)
+            // 外环底轨（极细磨砂圆环）
             Circle()
                 .stroke(
-                    Color.white.opacity(0.08),
-                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
+                    Color.white.opacity(0.06),
+                    style: StrokeStyle(lineWidth: 10, lineCap: .round)
                 )
-                .frame(width: 220, height: 220)
+                .frame(width: 190, height: 190)
 
-            // Dynamic Progress Gauge Arc
+            // 动态进度环弧线
             Circle()
-                .trim(from: 0.0, to: isRunning ? max(progress, 0.06) : 0.0)
+                .trim(from: 0.0, to: isRunning ? max(progress, 0.04) : 0.0)
                 .stroke(
                     AngularGradient(
-                        colors: flameMode
-                            ? [LiquidTheme.flameAccent, LiquidTheme.flamePrimary, LiquidTheme.flameSecondary, LiquidTheme.flameAccent]
-                            : [LiquidTheme.cyanPrimary, LiquidTheme.cyanSecondary, LiquidTheme.violetPrimary, LiquidTheme.cyanPrimary],
+                        colors: [
+                            LiquidTheme.flamePrimary,
+                            LiquidTheme.flameSecondary,
+                            LiquidTheme.flamePrimary
+                        ],
                         center: .center
                     ),
-                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
+                    style: StrokeStyle(lineWidth: 10, lineCap: .round)
                 )
-                .frame(width: 220, height: 220)
+                .frame(width: 190, height: 190)
                 .rotationEffect(.degrees(-90))
-                .animation(.spring(response: 0.5, dampingFraction: 0.75), value: progress)
-                .shadow(
-                    color: (flameMode ? LiquidTheme.flamePrimary : LiquidTheme.cyanPrimary).opacity(isRunning ? 0.7 : 0.0),
-                    radius: 12,
-                    x: 0,
-                    y: 0
-                )
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
 
-            // Center Info Glass Core
-            VStack(spacing: 4) {
-                if isRunning {
-                    Image(systemName: flameMode ? "flame.fill" : "bolt.horizontal.fill")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(
-                            flameMode ? LiquidTheme.burningGradient : LiquidTheme.speedGradient
-                        )
-                        .scaleEffect(pulseWave)
-                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseWave)
-                } else {
-                    Image(systemName: "powersleep")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(.white.opacity(0.4))
-                }
+            // 中心核心速率展示区
+            VStack(spacing: 2) {
+                // 状态指示小图标
+                Image(systemName: isRunning ? "flame.fill" : "bolt.horizontal.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(
+                        isRunning ? LiquidTheme.burningGradient : LiquidTheme.speedGradient
+                    )
+                    .padding(.bottom, 2)
 
-                // Speed Big Number
+                // 核心大数字
                 HStack(alignment: .lastTextBaseline, spacing: 3) {
                     Text(speedValue)
-                        .font(.system(size: 42, weight: .heavy, design: .rounded))
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     Text(speedUnit)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(flameMode ? LiquidTheme.flameSecondary : LiquidTheme.cyanPrimary)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundColor(LiquidTheme.flameSecondary)
                 }
 
-                // Bitrate
+                // 带宽文本
                 Text(bitrateText)
-                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.6))
-                    .padding(.top, 2)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.55))
             }
-            .padding(28)
+            .padding(24)
             .liquidGlass(
-                cornerRadius: 100,
-                innerTint: Color.black.opacity(0.2),
-                glowColor: isRunning ? (flameMode ? LiquidTheme.flamePrimary : LiquidTheme.cyanPrimary) : nil,
+                cornerRadius: 90,
+                innerTint: Color.black.opacity(0.25),
                 elevation: 4
             )
         }
         .onAppear {
             if isRunning {
-                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                    pulseWave = 1.08
+                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                    pulseWave = 1.05
                 }
             }
         }
         .onChange(of: isRunning) { running in
             if running {
-                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                    pulseWave = 1.08
+                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                    pulseWave = 1.05
                 }
             } else {
                 pulseWave = 1.0

@@ -10,236 +10,216 @@ import SwiftUI
 #if canImport(ActivityKit)
 import ActivityKit
 
+/// 灵动岛（Dynamic Island）与锁屏实时活动 Widget 组件
 struct BurnActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: BurnActivityAttributes.self) { context in
-            // MARK: - Lock Screen & Banner Presentation
+            // MARK: - 1. 锁屏与横幅通知展示形态
             lockScreenBanner(context: context)
         } dynamicIsland: { context in
-            // MARK: - Dynamic Island Presentation
+            // MARK: - 2. 灵动岛各形态动态适配
             DynamicIsland {
-                // Expanded Leading
+                // MARK: 展开形态 - 左侧区域
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: "flame.fill")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [Color(red: 1.0, green: 0.2, blue: 0.4), Color(red: 1.0, green: 0.6, blue: 0.1)],
+                                    colors: [Color(red: 1.0, green: 0.35, blue: 0.12), Color(red: 1.0, green: 0.62, blue: 0.15)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
 
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 1) {
                             Text(context.attributes.nodeName)
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(.white)
                                 .lineLimit(1)
 
                             Text("\(context.state.activeThreads) 线程并发")
-                                .font(.system(size: 11, weight: .medium))
+                                .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(.white.opacity(0.6))
                         }
                     }
                     .padding(.leading, 4)
                 }
 
-                // Expanded Trailing
+                // MARK: 展开形态 - 右侧区域
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 2) {
+                    VStack(alignment: .trailing, spacing: 1) {
                         Text(context.state.formattedSpeed)
-                            .font(.system(size: 16, weight: .heavy, design: .rounded))
-                            .foregroundColor(Color(red: 0.05, green: 0.85, blue: 0.95))
+                            .font(.system(size: 15, weight: .heavy, design: .rounded))
+                            .foregroundColor(Color(red: 0.15, green: 0.78, blue: 0.95))
 
                         Text(context.state.formattedBitrate)
-                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundColor(.white.opacity(0.6))
                     }
                     .padding(.trailing, 4)
                 }
 
-                // Expanded Center / Progress
+                // MARK: 展开形态 - 中间进度条
                 DynamicIslandExpandedRegion(.center) {
                     if let quotaStr = context.attributes.formattedQuota {
-                        VStack(spacing: 4) {
+                        VStack(spacing: 3) {
                             ProgressView(value: context.state.progress, total: 1.0)
-                                .tint(Color(red: 1.0, green: 0.36, blue: 0.15))
-                                .scaleEffect(y: 1.2)
+                                .tint(Color(red: 1.0, green: 0.35, blue: 0.12))
 
                             HStack {
-                                Text("已耗 \(context.state.formattedBurned)")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.85))
+                                Text("已消耗 \(context.state.formattedBurned)")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.8))
                                 Spacer()
                                 Text("目标 \(quotaStr)")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.6))
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.55))
                             }
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.top, 4)
+                        .padding(.horizontal, 6)
+                        .padding(.top, 2)
                     }
                 }
 
-                // Expanded Bottom
+                // MARK: 展开形态 - 底部状态
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack {
                         HStack(spacing: 4) {
                             Circle()
                                 .fill(context.state.isRunning && !context.state.isPaused ? Color.green : Color.orange)
-                                .frame(width: 7, height: 7)
+                                .frame(width: 6, height: 6)
                             Text(context.state.isRunning ? (context.state.isPaused ? "已暂停" : "全速拉取中") : "已就绪")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.white.opacity(0.75))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
                         }
 
                         Spacer()
 
-                        Text("累计消耗: \(context.state.formattedBurned)")
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 1.0, green: 0.65, blue: 0.1))
+                        Text("累计: \(context.state.formattedBurned)")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(red: 1.0, green: 0.62, blue: 0.15))
                     }
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, 4)
                     .padding(.top, 2)
                 }
             } compactLeading: {
-                // Compact Leading
-                HStack(spacing: 3) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color(red: 1.0, green: 0.2, blue: 0.4), Color(red: 1.0, green: 0.6, blue: 0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
-            } compactTrailing: {
-                // Compact Trailing
-                Text(context.state.formattedSpeed)
-                    .font(.system(size: 12, weight: .heavy, design: .rounded))
-                    .foregroundColor(Color(red: 0.05, green: 0.85, blue: 0.95))
-            } minimal: {
-                // Minimal
+                // MARK: 紧凑左侧（图标与状态）
                 Image(systemName: "flame.fill")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Color(red: 1.0, green: 0.4, blue: 0.1))
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(red: 1.0, green: 0.35, blue: 0.12), Color(red: 1.0, green: 0.62, blue: 0.15)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            } compactTrailing: {
+                // MARK: 紧凑右侧（实时速率）
+                Text(context.state.formattedSpeed)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundColor(Color(red: 0.15, green: 0.78, blue: 0.95))
+            } minimal: {
+                // MARK: 极简形态（单一能量火焰）
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.12))
             }
         }
     }
 
-    // MARK: - Lock Screen Banner View (Liquid Glass Style)
+    // MARK: - 3. 锁屏液态玻璃风格横幅卡片
+
     @ViewBuilder
     private func lockScreenBanner(context: ActivityViewContext<BurnActivityAttributes>) -> some View {
         ZStack {
-            // Dark Frosted Background
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(red: 0.08, green: 0.09, blue: 0.13).opacity(0.92))
+            // 深邃微磨砂底板
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color(red: 0.08, green: 0.09, blue: 0.12).opacity(0.92))
 
-            // Ambient Glow Gradient
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 1.0, green: 0.36, blue: 0.15).opacity(0.12),
-                            Color(red: 0.05, green: 0.85, blue: 0.95).opacity(0.08),
-                            Color.clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            // Specular Top Border
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            // 0.6pt 细微边缘折射描边
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.45),
-                            Color.white.opacity(0.1),
+                            Color.white.opacity(0.35),
+                            Color.white.opacity(0.08),
                             Color.clear
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 0.8
+                    lineWidth: 0.6
                 )
 
-            VStack(spacing: 12) {
-                // Top Header Row
+            VStack(spacing: 10) {
+                // 顶部信息行
                 HStack {
-                    HStack(spacing: 8) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color(red: 1.0, green: 0.2, blue: 0.4), Color(red: 1.0, green: 0.6, blue: 0.1)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
+                    HStack(spacing: 6) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color(red: 1.0, green: 0.35, blue: 0.12), Color(red: 1.0, green: 0.62, blue: 0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                                .frame(width: 28, height: 28)
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(.white)
-                        }
+                            )
 
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 1) {
                             Text("BurnGB 流量消耗")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(.white)
                             Text(context.attributes.nodeName)
-                                .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.6))
+                                .font(.system(size: 10))
+                                .foregroundColor(.white.opacity(0.55))
                         }
                     }
 
                     Spacer()
 
-                    VStack(alignment: .trailing, spacing: 2) {
+                    VStack(alignment: .trailing, spacing: 1) {
                         Text(context.state.formattedSpeed)
-                            .font(.system(size: 18, weight: .heavy, design: .rounded))
-                            .foregroundColor(Color(red: 0.05, green: 0.85, blue: 0.95))
+                            .font(.system(size: 16, weight: .heavy, design: .rounded))
+                            .foregroundColor(Color(red: 0.15, green: 0.78, blue: 0.95))
                         Text(context.state.formattedBitrate)
-                            .font(.system(size: 11, weight: .medium, design: .monospaced))
-                            .foregroundColor(.white.opacity(0.6))
+                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.55))
                     }
                 }
 
-                // Progress Bar (if quota set)
+                // 进度条与定量统计
                 if let quotaStr = context.attributes.formattedQuota {
-                    VStack(spacing: 4) {
+                    VStack(spacing: 3) {
                         ProgressView(value: context.state.progress, total: 1.0)
-                            .tint(Color(red: 1.0, green: 0.36, blue: 0.15))
+                            .tint(Color(red: 1.0, green: 0.35, blue: 0.12))
 
                         HStack {
                             Text("已消耗 \(context.state.formattedBurned)")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.85))
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.8))
                             Spacer()
                             Text("定量上限 \(quotaStr)")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.white.opacity(0.6))
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.white.opacity(0.55))
                         }
                     }
                 } else {
                     HStack {
                         Text("累计消耗: \(context.state.formattedBurned)")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 1.0, green: 0.65, blue: 0.1))
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(red: 1.0, green: 0.62, blue: 0.15))
                         Spacer()
                         Text("\(context.state.activeThreads) 线程全速并发")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.6))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.white.opacity(0.55))
                     }
                 }
             }
-            .padding(16)
+            .padding(14)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
     }
 }
 #endif

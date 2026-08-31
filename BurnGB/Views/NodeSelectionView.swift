@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// 测速与拉取节点切换及延时探测视图
 public struct NodeSelectionView: View {
     @Binding public var currentNode: BurnNode
     @Environment(\.dismiss) private var dismiss
@@ -31,45 +32,45 @@ public struct NodeSelectionView: View {
                 LiquidMeshBackground()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 22) {
-                        // Top Ping Action
+                    VStack(alignment: .leading, spacing: 20) {
+                        // 顶部测延时按钮
                         HStack {
-                            Text("测速节点选择")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.8))
+                            Text("测速节点")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.75))
 
                             Spacer()
 
                             Button {
                                 pingAllNodes()
                             } label: {
-                                HStack(spacing: 6) {
+                                HStack(spacing: 5) {
                                     if isPingingAll {
                                         ProgressView()
                                             .tint(LiquidTheme.cyanPrimary)
-                                            .scaleEffect(0.8)
+                                            .scaleEffect(0.75)
                                     } else {
                                         Image(systemName: "waveform.path.ecg")
                                     }
-                                    Text(isPingingAll ? "测延时中..." : "全节点测延时")
+                                    Text(isPingingAll ? "测量中..." : "全节点测延时")
                                 }
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(LiquidTheme.cyanPrimary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .liquidGlass(cornerRadius: 12, innerTint: LiquidTheme.cyanPrimary.opacity(0.12))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .liquidGlass(cornerRadius: 10, innerTint: LiquidTheme.cyanPrimary.opacity(0.1))
                             }
                             .disabled(isPingingAll)
                         }
                         .padding(.horizontal, 4)
 
-                        // Preset Groups
+                        // 预设分组展示
                         let groups = Dictionary(grouping: NodePresetManager.defaultNodes, by: { $0.group })
                         ForEach(groups.keys.sorted(), id: \.self) { groupName in
-                            VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 Text(groupName)
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white.opacity(0.6))
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.5))
                                     .padding(.leading, 4)
 
                                 ForEach(groups[groupName] ?? []) { node in
@@ -78,12 +79,12 @@ public struct NodeSelectionView: View {
                             }
                         }
 
-                        // Custom Nodes Section
-                        VStack(alignment: .leading, spacing: 10) {
+                        // 自定义节点分组
+                        VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text("自定义节点")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white.opacity(0.6))
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.5))
                                     .padding(.leading, 4)
 
                                 Spacer()
@@ -91,8 +92,8 @@ public struct NodeSelectionView: View {
                                 Button {
                                     showAddSheet = true
                                 } label: {
-                                    Label("添加节点", systemImage: "plus.circle.fill")
-                                        .font(.system(size: 13, weight: .semibold))
+                                    Label("添加", systemImage: "plus.circle.fill")
+                                        .font(.system(size: 12, weight: .semibold))
                                         .foregroundColor(LiquidTheme.flamePrimary)
                                 }
                             }
@@ -101,17 +102,12 @@ public struct NodeSelectionView: View {
                                 LiquidGlassCard {
                                     HStack {
                                         Spacer()
-                                        VStack(spacing: 6) {
-                                            Image(systemName: "link.badge.plus")
-                                                .font(.system(size: 24))
-                                                .foregroundColor(.white.opacity(0.3))
-                                            Text("暂无自定义节点，点击右上角添加")
-                                                .font(.system(size: 13))
-                                                .foregroundColor(.white.opacity(0.5))
-                                        }
+                                        Text("暂无自定义节点，点击右上角添加")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white.opacity(0.4))
                                         Spacer()
                                     }
-                                    .padding(.vertical, 10)
+                                    .padding(.vertical, 8)
                                 }
                             } else {
                                 ForEach(customNodes) { node in
@@ -120,7 +116,7 @@ public struct NodeSelectionView: View {
                             }
                         }
                     }
-                    .padding(20)
+                    .padding(18)
                 }
             }
             .navigationTitle("选择测速节点")
@@ -147,19 +143,19 @@ public struct NodeSelectionView: View {
             currentNode = node
             dismiss()
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 Image(systemName: node.iconName)
-                    .font(.system(size: 20))
-                    .foregroundColor(currentNode.id == node.id ? LiquidTheme.cyanPrimary : .white.opacity(0.7))
-                    .frame(width: 32)
+                    .font(.system(size: 18))
+                    .foregroundColor(currentNode.id == node.id ? LiquidTheme.cyanPrimary : .white.opacity(0.6))
+                    .frame(width: 28)
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(node.name)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                     Text(node.urlString)
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.45))
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.4))
                         .lineLimit(1)
                 }
 
@@ -167,27 +163,24 @@ public struct NodeSelectionView: View {
 
                 if let ping = pingResults[node.id] {
                     Text("\(ping) ms")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
                         .foregroundColor(ping < 80 ? LiquidTheme.emerald : (ping < 200 ? LiquidTheme.flameSecondary : Color.red.opacity(0.8)))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule().fill(Color.black.opacity(0.3))
-                        )
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.black.opacity(0.25)))
                 }
 
                 if currentNode.id == node.id {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18))
+                        .font(.system(size: 16))
                         .foregroundColor(LiquidTheme.cyanPrimary)
                 }
             }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 14)
             .liquidGlass(
-                cornerRadius: 18,
-                innerTint: currentNode.id == node.id ? LiquidTheme.cyanPrimary.opacity(0.15) : Color.white.opacity(0.04),
-                glowColor: currentNode.id == node.id ? LiquidTheme.cyanPrimary : nil
+                cornerRadius: 14,
+                innerTint: currentNode.id == node.id ? LiquidTheme.cyanPrimary.opacity(0.12) : Color.white.opacity(0.03)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -198,10 +191,10 @@ public struct NodeSelectionView: View {
             ZStack {
                 LiquidMeshBackground()
 
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 18) {
                     LiquidGlassCard {
-                        VStack(spacing: 14) {
-                            TextField("节点名称 (如: 私有高速镜像)", text: $newName)
+                        VStack(spacing: 12) {
+                            TextField("节点名称 (如: 私有 CDN 镜像)", text: $newName)
                                 .foregroundColor(.white)
 
                             Divider().background(Color.white.opacity(0.1))
@@ -215,14 +208,14 @@ public struct NodeSelectionView: View {
 
                     if let error = urlError {
                         Text(error)
-                            .font(.system(size: 13))
+                            .font(.system(size: 12))
                             .foregroundColor(.red.opacity(0.9))
                             .padding(.horizontal, 4)
                     }
 
                     LiquidGlassButton(
-                        title: isCheckingUrl ? "连通性检测中..." : "保存并启用节点",
-                        icon: "checkmark.seal.fill",
+                        title: isCheckingUrl ? "连通性检测中..." : "保存节点",
+                        icon: "checkmark",
                         style: .burning
                     ) {
                         saveCustomNode()
@@ -231,7 +224,7 @@ public struct NodeSelectionView: View {
 
                     Spacer()
                 }
-                .padding(20)
+                .padding(18)
             }
             .navigationTitle("添加自定义节点")
             .navigationBarTitleDisplayMode(.inline)
@@ -278,10 +271,6 @@ public struct NodeSelectionView: View {
             let rtt = await IPDiscoveryService.shared.pingNode(url)
             await MainActor.run {
                 isCheckingUrl = false
-                if rtt == nil {
-                    urlError = "警告：此 URL 响应异常或无法连接，请确认服务是否正常"
-                }
-
                 let node = BurnNode(
                     name: newName,
                     urlString: newUrl,

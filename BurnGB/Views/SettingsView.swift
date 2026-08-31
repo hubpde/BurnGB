@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// 系统偏好与性能设置视图
 public struct SettingsView: View {
     @ObservedObject private var engine = BurnEngine.shared
     @Environment(\.dismiss) private var dismiss
@@ -21,23 +22,23 @@ public struct SettingsView: View {
                 LiquidMeshBackground()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 22) {
-                        // Background & Dynamic Island Section
+                    VStack(alignment: .leading, spacing: 20) {
+                        // 后台与灵动岛配置
                         Text("后台与灵动岛")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.8))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.75))
                             .padding(.horizontal, 4)
 
                         LiquidGlassCard {
-                            VStack(spacing: 16) {
+                            VStack(spacing: 14) {
                                 Toggle(isOn: $engine.enableBackgroundExecution) {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text("后台持续消耗")
-                                            .font(.system(size: 16, weight: .semibold))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("后台长效保活")
+                                            .font(.system(size: 15, weight: .semibold))
                                             .foregroundColor(.white)
-                                        Text("锁屏或切到其他应用时维持最大带宽拉取")
+                                        Text("锁屏或切到其他应用时维持音频会话，持续全速拉取")
                                             .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.6))
+                                            .foregroundColor(.white.opacity(0.55))
                                     }
                                 }
                                 .tint(LiquidTheme.flamePrimary)
@@ -45,81 +46,82 @@ public struct SettingsView: View {
                                     UserDefaults.standard.set(val, forKey: "burn_bg_exec")
                                 }
 
-                                Divider().background(Color.white.opacity(0.1))
+                                Divider().background(Color.white.opacity(0.08))
 
                                 Toggle(isOn: $engine.enableLiveActivity) {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text("灵动岛与实时活动")
-                                            .font(.system(size: 16, weight: .semibold))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("灵动岛与锁屏活动")
+                                            .font(.system(size: 15, weight: .semibold))
                                             .foregroundColor(.white)
-                                        Text("在灵动岛与锁屏通知栏实时监控流量与速率")
+                                        Text("在灵动岛（紧凑/极简/展开）及锁屏实时掌控速率与用量")
                                             .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.6))
+                                            .foregroundColor(.white.opacity(0.55))
                                     }
                                 }
                                 .tint(LiquidTheme.cyanPrimary)
                             }
                         }
 
-                        // Display Performance Section
-                        Text("性能与显示")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.8))
+                        // 性能与显示
+                        Text("底层特性")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.75))
                             .padding(.horizontal, 4)
 
                         LiquidGlassCard {
-                            VStack(spacing: 14) {
+                            VStack(spacing: 12) {
                                 HStack {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text("ProMotion 120Hz 全局高刷支持")
-                                            .font(.system(size: 16, weight: .semibold))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("ProMotion 120Hz 高刷调度")
+                                            .font(.system(size: 15, weight: .semibold))
                                             .foregroundColor(.white)
-                                        Text("已开启 CADisableMinimumFrameDurationOnPhone")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.6))
+                                        Text("启用 CADisableMinimumFrameDurationOnPhone")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.white.opacity(0.55))
                                     }
                                     Spacer()
                                     Image(systemName: "bolt.badge.checkmark.fill")
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 18))
                                         .foregroundColor(LiquidTheme.emerald)
                                 }
 
-                                Divider().background(Color.white.opacity(0.1))
+                                Divider().background(Color.white.opacity(0.08))
 
                                 HStack {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text("内存零分配引擎")
-                                            .font(.system(size: 16, weight: .semibold))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("零内存增长架构")
+                                            .font(.system(size: 15, weight: .semibold))
                                             .foregroundColor(.white)
-                                        Text("流式丢弃字节分块，消耗 1TB 内存亦无增长")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.6))
+                                        Text("流式分块统计即刻丢弃，内存稳定维持在 ~15MB")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.white.opacity(0.55))
                                     }
                                     Spacer()
                                     Image(systemName: "memorychip.fill")
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 18))
                                         .foregroundColor(LiquidTheme.cyanPrimary)
                                 }
                             }
                         }
 
-                        // About Navigation
+                        // 关于导航
                         LiquidGlassCard {
                             Button {
                                 showAbout = true
                             } label: {
                                 HStack {
                                     Label("关于 BurnGB 与免责声明", systemImage: "info.circle.fill")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(.system(size: 15, weight: .semibold))
                                         .foregroundColor(.white)
                                     Spacer()
                                     Image(systemName: "chevron.right")
+                                        .font(.system(size: 13))
                                         .foregroundColor(.white.opacity(0.4))
                                 }
                             }
                         }
                     }
-                    .padding(20)
+                    .padding(18)
                 }
             }
             .navigationTitle("设置与偏好")

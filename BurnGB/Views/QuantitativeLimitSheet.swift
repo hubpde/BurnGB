@@ -7,14 +7,15 @@
 
 import SwiftUI
 
+/// 定量目标流量设置弹窗视图
 public struct QuantitativeLimitSheet: View {
     @Binding public var targetQuota: Int64?
     @Environment(\.dismiss) private var dismiss
 
-    @State private var selectedPresetGB: Double? = nil
     @State private var customValue: String = ""
     @State private var customUnit: String = "GB"
 
+    /// 常用快捷预设档位
     private let presets: [(label: String, bytes: Int64)] = [
         ("500 MB", 500 * 1024 * 1024),
         ("1 GB", 1024 * 1024 * 1024),
@@ -36,31 +37,31 @@ public struct QuantitativeLimitSheet: View {
                 LiquidMeshBackground()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Info Header Card
+                    VStack(alignment: .leading, spacing: 18) {
+                        // 顶部说明卡片
                         LiquidGlassCard {
                             HStack(spacing: 12) {
                                 Image(systemName: "gauge.with.dots.needle.bottom.50percent")
-                                    .font(.system(size: 26))
+                                    .font(.system(size: 24))
                                     .foregroundColor(LiquidTheme.flamePrimary)
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text("定量自动停止")
-                                        .font(.system(size: 17, weight: .bold))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("定量自动切断")
+                                        .font(.system(size: 15, weight: .bold))
                                         .foregroundColor(.white)
-                                    Text("达到目标消耗流量后，引擎将自动停止并触发振动通知")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.white.opacity(0.65))
+                                    Text("达到目标消耗流量后，引擎将自动切断并发并触发振动通知")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.6))
                                 }
                             }
                         }
 
-                        // Presets Grid
-                        Text("快捷预设")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.8))
+                        // 快捷预设网格
+                        Text("快捷档位")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.75))
                             .padding(.horizontal, 4)
 
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                             ForEach(presets, id: \.bytes) { preset in
                                 Button {
                                     HapticManager.selection()
@@ -69,7 +70,7 @@ public struct QuantitativeLimitSheet: View {
                                 } label: {
                                     HStack {
                                         Text(preset.label)
-                                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                            .font(.system(size: 15, weight: .semibold, design: .rounded))
                                             .foregroundColor(.white)
                                         Spacer()
                                         if targetQuota == preset.bytes {
@@ -77,32 +78,30 @@ public struct QuantitativeLimitSheet: View {
                                                 .foregroundColor(LiquidTheme.flamePrimary)
                                         }
                                     }
-                                    .padding(.vertical, 14)
-                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .padding(.horizontal, 14)
                                     .liquidGlass(
-                                        cornerRadius: 16,
-                                        innerTint: targetQuota == preset.bytes ? LiquidTheme.flamePrimary.opacity(0.18) : Color.white.opacity(0.04),
-                                        glowColor: targetQuota == preset.bytes ? LiquidTheme.flamePrimary : nil
+                                        cornerRadius: 14,
+                                        innerTint: targetQuota == preset.bytes ? LiquidTheme.flamePrimary.opacity(0.15) : Color.white.opacity(0.03)
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
 
-                        // Custom Input Card
-                        Text("自定义额度")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.8))
+                        // 自定义输入卡片
+                        Text("自定义数值")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.75))
                             .padding(.horizontal, 4)
-                            .padding(.top, 8)
 
                         LiquidGlassCard {
-                            VStack(spacing: 14) {
+                            VStack(spacing: 12) {
                                 HStack {
                                     TextField("输入数字 (如: 20)", text: $customValue)
                                         .keyboardType(.decimalPad)
                                         .foregroundColor(.white)
-                                        .font(.system(size: 18, weight: .semibold))
+                                        .font(.system(size: 16, weight: .semibold))
 
                                     Picker("单位", selection: $customUnit) {
                                         Text("MB").tag("MB")
@@ -114,8 +113,8 @@ public struct QuantitativeLimitSheet: View {
                                 }
 
                                 LiquidGlassButton(
-                                    title: "应用自定义额度",
-                                    icon: "arrow.right.circle.fill",
+                                    title: "应用设定",
+                                    icon: "checkmark",
                                     style: .burning
                                 ) {
                                     applyCustom()
@@ -123,27 +122,27 @@ public struct QuantitativeLimitSheet: View {
                             }
                         }
 
-                        // Clear Button
+                        // 清除上限按钮
                         if targetQuota != nil {
                             Button {
                                 HapticManager.impact(.medium)
                                 targetQuota = nil
                                 dismiss()
                             } label: {
-                                Text("清除上限 (不设限制)")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.red.opacity(0.9))
+                                Text("清除上限（不设限制）")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.red.opacity(0.85))
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
-                                    .liquidGlass(cornerRadius: 16, innerTint: Color.red.opacity(0.08))
+                                    .padding(.vertical, 12)
+                                    .liquidGlass(cornerRadius: 14, innerTint: Color.red.opacity(0.06))
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(20)
+                    .padding(18)
                 }
             }
-            .navigationTitle("设置定量上限")
+            .navigationTitle("定量上限设置")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

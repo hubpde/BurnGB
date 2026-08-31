@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// 多出口公网 IP 与路由归属地诊断视图
 public struct IPInfoView: View {
     @ObservedObject private var ipService = IPDiscoveryService.shared
     @Environment(\.dismiss) private var dismiss
@@ -19,8 +20,8 @@ public struct IPInfoView: View {
                 LiquidMeshBackground()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Domestic IP Card
+                    VStack(alignment: .leading, spacing: 18) {
+                        // 国内/本地直连出口卡片
                         ipCard(
                             title: "国内 / 本地出口探测",
                             icon: "antenna.radiowaves.left.and.right",
@@ -28,7 +29,7 @@ public struct IPInfoView: View {
                             accentColor: LiquidTheme.emerald
                         )
 
-                        // Cloudflare Global IP Card
+                        // Cloudflare 全球出口卡片
                         ipCard(
                             title: "Cloudflare 全球出口探测",
                             icon: "globe.asia.australia.fill",
@@ -36,9 +37,9 @@ public struct IPInfoView: View {
                             accentColor: LiquidTheme.cyanPrimary
                         )
 
-                        // Refresh Button
+                        // 重新诊断按钮
                         LiquidGlassButton(
-                            title: ipService.isProbing ? "网络诊断中..." : "重新探测多出口 IP",
+                            title: ipService.isProbing ? "诊断探测中..." : "重新探测多出口 IP",
                             icon: "arrow.clockwise",
                             style: .speedCyan
                         ) {
@@ -49,10 +50,10 @@ public struct IPInfoView: View {
                         }
                         .disabled(ipService.isProbing)
                     }
-                    .padding(20)
+                    .padding(18)
                 }
             }
-            .navigationTitle("网络与多出口 IP")
+            .navigationTitle("网络与出口 IP")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -78,38 +79,38 @@ public struct IPInfoView: View {
         accentColor: Color
     ) -> some View {
         LiquidGlassCard(glowColor: accentColor) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Label(title, systemImage: icon)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
                     if let rtt = result?.latencyMs {
                         Text("\(rtt) ms")
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
                             .foregroundColor(accentColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Capsule().fill(accentColor.opacity(0.15)))
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(accentColor.opacity(0.12)))
                     }
                 }
 
-                Divider().background(Color.white.opacity(0.1))
+                Divider().background(Color.white.opacity(0.08))
 
                 if let info = result {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 3) {
                             Text(info.ip)
-                                .font(.system(size: 24, weight: .heavy, design: .monospaced))
+                                .font(.system(size: 22, weight: .bold, design: .monospaced))
                                 .foregroundColor(.white)
 
                             Text("\(info.isp) · \(info.asn)")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white.opacity(0.65))
 
                             Text(info.displayLocation)
-                                .font(.system(size: 12))
-                                .foregroundColor(.white.opacity(0.5))
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
                         }
 
                         Spacer()
@@ -119,10 +120,10 @@ public struct IPInfoView: View {
                             HapticManager.notification(.success)
                         } label: {
                             Image(systemName: "doc.on.doc.fill")
-                                .font(.system(size: 18))
+                                .font(.system(size: 16))
                                 .foregroundColor(accentColor)
-                                .padding(10)
-                                .background(Circle().fill(Color.white.opacity(0.08)))
+                                .padding(9)
+                                .background(Circle().fill(Color.white.opacity(0.06)))
                         }
                     }
                 } else {
@@ -130,7 +131,7 @@ public struct IPInfoView: View {
                         Spacer()
                         ProgressView()
                             .tint(accentColor)
-                            .padding(.vertical, 10)
+                            .padding(.vertical, 8)
                         Spacer()
                     }
                 }

@@ -10,15 +10,18 @@ import Foundation
 import ActivityKit
 #endif
 
+/// 灵动岛与锁屏实时活动（Live Activity）生命周期管理器
 public final class LiveActivityManager {
     public static let shared = LiveActivityManager()
 
     #if canImport(ActivityKit)
+    /// 当前活跃的 Activity 句柄
     private var currentActivity: Activity<BurnActivityAttributes>?
     #endif
 
     private init() {}
 
+    /// 请求启动灵动岛与锁屏实时活动
     public func startActivity(
         nodeName: String,
         targetQuotaBytes: Int64?,
@@ -27,7 +30,7 @@ public final class LiveActivityManager {
         #if canImport(ActivityKit)
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
-        // End any previous activities
+        // 先清理可能存在的旧活动实例
         endActivity()
 
         let attributes = BurnActivityAttributes(
@@ -61,11 +64,12 @@ public final class LiveActivityManager {
             )
             self.currentActivity = activity
         } catch {
-            print("[LiveActivityManager] Failed to start Live Activity: \(error)")
+            print("[LiveActivityManager] 实时活动启动失败: \(error.localizedDescription)")
         }
         #endif
     }
 
+    /// 高频平滑更新灵动岛与锁屏卡片内容状态
     public func updateActivity(
         currentSpeed: Double,
         totalBurned: Int64,
@@ -106,6 +110,7 @@ public final class LiveActivityManager {
         #endif
     }
 
+    /// 立即结束并关闭灵动岛活动
     public func endActivity() {
         #if canImport(ActivityKit)
         guard let activity = currentActivity else { return }

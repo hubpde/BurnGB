@@ -7,54 +7,47 @@
 
 import SwiftUI
 
+/// 极简高质感配色与渐变定义（Apple Pro 质感）
 public enum LiquidTheme {
-    // Primary Vibrant Accents
-    public static let flamePrimary = Color(red: 1.00, green: 0.36, blue: 0.15)    // #FF5C26
-    public static let flameSecondary = Color(red: 1.00, green: 0.65, blue: 0.10)  // #FFA61A
-    public static let flameAccent = Color(red: 1.00, green: 0.18, blue: 0.45)     // #FF2E73
+    // MARK: - 主色调定义
+    /// 核心能量橙红色（点火状态主色）
+    public static let flamePrimary = Color(red: 1.00, green: 0.35, blue: 0.12)
+    /// 辅助暖金橙色
+    public static let flameSecondary = Color(red: 1.00, green: 0.62, blue: 0.15)
+    /// 速率电光青（科技测速主色）
+    public static let cyanPrimary = Color(red: 0.15, green: 0.78, blue: 0.95)
+    /// 稳态翡翠绿（就绪/成功状态色）
+    public static let emerald = Color(red: 0.20, green: 0.85, blue: 0.55)
 
-    public static let cyanPrimary = Color(red: 0.05, green: 0.85, blue: 0.95)     // #0DD9F2
-    public static let cyanSecondary = Color(red: 0.15, green: 0.55, blue: 1.00)   // #268CFF
-    public static let violetPrimary = Color(red: 0.62, green: 0.28, blue: 1.00)   // #9E47FF
-
-    public static let emerald = Color(red: 0.15, green: 0.88, blue: 0.55)         // #26E08C
-    public static let glassDarkBase = Color(red: 0.06, green: 0.07, blue: 0.10)   // #0F121A
-
-    // Gradients
+    // MARK: - 质感渐变定义
+    /// 点火拉取渐变色
     public static let burningGradient = LinearGradient(
-        colors: [flameAccent, flamePrimary, flameSecondary],
+        colors: [flamePrimary, flameSecondary],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
+    /// 速率指示渐变色
     public static let speedGradient = LinearGradient(
-        colors: [cyanPrimary, cyanSecondary, violetPrimary],
+        colors: [cyanPrimary, Color(red: 0.25, green: 0.55, blue: 1.0)],
         startPoint: .leading,
         endPoint: .trailing
     )
 
+    /// 玻璃边缘微光反射描边渐变
     public static let glassRimHighlight = LinearGradient(
         colors: [
-            Color.white.opacity(0.65),
-            Color.white.opacity(0.20),
-            Color.white.opacity(0.05),
+            Color.white.opacity(0.35),
+            Color.white.opacity(0.08),
             Color.clear
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    public static let glassDarkBorder = LinearGradient(
-        colors: [
-            Color.white.opacity(0.25),
-            Color.white.opacity(0.05),
-            Color.black.opacity(0.3)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 }
 
+/// 极简高级液态磨砂背景组件
+/// 采用深邃黑曜石底色搭配极度克制的微环境漫反射，保证视觉极简、纯净、无冗余杂色干扰
 public struct LiquidMeshBackground: View {
     @State private var animate = false
 
@@ -62,60 +55,37 @@ public struct LiquidMeshBackground: View {
 
     public var body: some View {
         ZStack {
-            // Deep base
-            Color(red: 0.04, green: 0.05, blue: 0.08)
+            // 深邃黑曜石底色
+            Color(red: 0.05, green: 0.06, blue: 0.08)
                 .ignoresSafeArea()
 
-            // Dynamic fluid ambient orbs
+            // 极简微弱柔和环境光斑（超大羽化模糊，克制不喧宾夺主）
             GeometryReader { proxy in
                 let size = proxy.size
 
-                // Blob 1 - Top Left Cyan
+                // 左上方微弱科技青晕
                 Circle()
-                    .fill(LiquidTheme.cyanPrimary.opacity(0.35))
-                    .frame(width: size.width * 0.85, height: size.width * 0.85)
-                    .blur(radius: 80)
-                    .offset(
-                        x: animate ? -size.width * 0.2 : size.width * 0.05,
-                        y: animate ? -size.height * 0.15 : -size.height * 0.05
-                    )
-
-                // Blob 2 - Center Right Flame/Violet
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [LiquidTheme.flamePrimary.opacity(0.4), LiquidTheme.violetPrimary.opacity(0.3)],
-                            center: .center,
-                            startRadius: 20,
-                            endRadius: size.width * 0.4
-                        )
-                    )
+                    .fill(LiquidTheme.cyanPrimary.opacity(0.12))
                     .frame(width: size.width * 0.9, height: size.width * 0.9)
-                    .blur(radius: 90)
-                    .offset(
-                        x: animate ? size.width * 0.25 : size.width * 0.05,
-                        y: animate ? size.height * 0.15 : size.height * 0.35
-                    )
+                    .blur(radius: 100)
+                    .offset(x: animate ? -size.width * 0.1 : 0, y: -size.height * 0.1)
 
-                // Blob 3 - Bottom Left Deep Indigo
+                // 右下方微弱能量橙晕
                 Circle()
-                    .fill(LiquidTheme.violetPrimary.opacity(0.3))
-                    .frame(width: size.width * 0.75, height: size.width * 0.75)
-                    .blur(radius: 75)
-                    .offset(
-                        x: animate ? -size.width * 0.15 : size.width * 0.1,
-                        y: animate ? size.height * 0.6 : size.height * 0.45
-                    )
+                    .fill(LiquidTheme.flamePrimary.opacity(0.10))
+                    .frame(width: size.width * 0.9, height: size.width * 0.9)
+                    .blur(radius: 110)
+                    .offset(x: size.width * 0.2, y: animate ? size.height * 0.4 : size.height * 0.3)
             }
             .ignoresSafeArea()
 
-            // Subtle frosted overlay
+            // 顶级磨砂材质层
             Rectangle()
-                .fill(.ultraThinMaterial.opacity(0.4))
+                .fill(.ultraThinMaterial.opacity(0.6))
                 .ignoresSafeArea()
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 7.0).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 8.0).repeatForever(autoreverses: true)) {
                 animate = true
             }
         }

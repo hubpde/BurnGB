@@ -7,15 +7,22 @@
 
 import Foundation
 
+/// 多出口公网 IP 探测与网络诊断服务
 public final class IPDiscoveryService: ObservableObject {
     public static let shared = IPDiscoveryService()
 
+    /// 国内/默认直连出口诊断结果
     @Published public var localIP: IPProbeResult?
+
+    /// Cloudflare Anycast 全球出口诊断结果
     @Published public var cloudflareIP: IPProbeResult?
+
+    /// 是否正在探测中
     @Published public var isProbing = false
 
     private init() {}
 
+    /// 同时并发探测多出口信息
     public func probeAll() async {
         await MainActor.run { isProbing = true }
 
@@ -31,7 +38,7 @@ public final class IPDiscoveryService: ObservableObject {
         }
     }
 
-    /// Probe domestic / default IP info
+    /// 探测国内直连出口网络详情
     public func probeLocalDomesticEgress() async -> IPProbeResult? {
         let startTime = Date()
         guard let url = URL(string: "https://ipapi.co/json/") else { return nil }
@@ -56,9 +63,9 @@ public final class IPDiscoveryService: ObservableObject {
                 countryCode: (json["country_code"] as? String) ?? "CN",
                 region: (json["region"] as? String) ?? "",
                 city: (json["city"] as? String) ?? "",
-                isp: (json["org"] as? String) ?? "本地网络",
+                isp: (json["org"] as? String) ?? "本地运营商",
                 asn: (json["asn"] as? String) ?? "",
-                egressType: "国内出口",
+                egressType: "国内直连出口",
                 latencyMs: rtt
             )
         } catch {
@@ -66,6 +73,7 @@ public final class IPDiscoveryService: ObservableObject {
         }
     }
 
+    /// 备选轻量级 IP 探测接口
     private func fallbackLocalProbe() async -> IPProbeResult? {
         guard let url = URL(string: "https://api.ipify.org?format=json") else { return nil }
         do {
@@ -76,15 +84,15 @@ public final class IPDiscoveryService: ObservableObject {
                     ip: ip,
                     country: "中国",
                     countryCode: "CN",
-                    isp: "本地出口",
-                    egressType: "本地网络"
+                    isp: "本地网络",
+                    egressType: "本地出口"
                 )
             }
         } catch {}
         return nil
     }
 
-    /// Probe Cloudflare Global / CDN egress
+    /// 探测 Cloudflare 全球出口与边缘节点机房 (Colo)
     public func probeCloudflareGlobalEgress() async -> IPProbeResult? {
         let startTime = Date()
         guard let url = URL(string: "https://1.1.1.1/cdn-cgi/trace") else { return nil }
@@ -118,7 +126,7 @@ public final class IPDiscoveryService: ObservableObject {
                 ip: ip,
                 country: loc,
                 countryCode: loc,
-                city: "Colo: \(colo)",
+                city: "边缘机房: \(colo)",
                 isp: "Cloudflare Anycast",
                 asn: "AS13335",
                 egressType: "Cloudflare 全球出口",
@@ -129,7 +137,7 @@ public final class IPDiscoveryService: ObservableObject {
         }
     }
 
-    /// Measure latency to a specific URL
+    /// 测试目标 URL 的往返网络延时 (Ping RTT)
     public func pingNode(_ nodeUrl: URL) async -> Int? {
         let startTime = Date()
         var request = URLRequest(url: nodeUrl)
@@ -144,7 +152,7 @@ public final class IPDiscoveryService: ObservableObject {
                 return rtt
             }
         } catch {
-            // Fallback with GET 1 byte range
+            // 使用 Range 请求 fallback
             request.httpMethod = "GET"
             request.setValue("bytes=0-0", forHTTPHeaderField: "Range")
             do {

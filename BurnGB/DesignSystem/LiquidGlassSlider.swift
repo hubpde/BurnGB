@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// 极简液态玻璃风格滑块调节组件
 public struct LiquidGlassSlider: View {
     @Binding public var value: Double
     public var range: ClosedRange<Double>
@@ -32,23 +33,21 @@ public struct LiquidGlassSlider: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(label)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
                 Spacer()
                 Text(displayValue.isEmpty ? "\(Int(value))" : displayValue)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundColor(tintColor)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 9)
                     .padding(.vertical, 3)
                     .background(
                         Capsule()
-                            .fill(tintColor.opacity(0.15))
-                            .overlay(
-                                Capsule().stroke(tintColor.opacity(0.3), lineWidth: 0.8)
-                            )
+                            .fill(tintColor.opacity(0.12))
+                            .overlay(Capsule().stroke(tintColor.opacity(0.25), lineWidth: 0.6))
                     )
             }
 
