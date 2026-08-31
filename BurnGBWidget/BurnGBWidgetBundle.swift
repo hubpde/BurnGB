@@ -1,8 +1,8 @@
 //
 //  BurnGBWidgetBundle.swift
-//  BurnGBWidget
+//  BurnGB
 //
-//  Created for BurnGB - iOS 26 Liquid Glass Edition.
+//  Widget 扩展入口。
 //
 
 import WidgetKit

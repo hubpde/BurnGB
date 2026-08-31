@@ -1,89 +1,133 @@
-name: Build & Package iOS IPA
+name: Build, Test & Package BurnGB
 
 on:
   push:
-    branches: [ main, master ]
-    tags: [ 'v*' ]
+    branches: [main]
+    tags: ["v*"]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create a GitHub Release with the IPA'
-        required: false
-        default: false
-        type: boolean
+
+concurrency:
+  group: burngb-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: Build BurnGB IPA
-    runs-on: macos-14
+    name: Xcode 26 build and unsigned IPA
+    runs-on: macos-15
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Setup Xcode
+      - name: Select Xcode 26
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: 'latest-stable'
+          xcode-version: "26.0"
 
-      - name: Install XcodeGen
+      - name: Print toolchain versions
         run: |
-          brew install xcodegen
+          set -euo pipefail
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          swift --version
 
-      - name: Generate Xcode Project
+      - name: Install pinned XcodeGen release
         run: |
-          xcodegen generate
+          set -euo pipefail
+          VERSION="2.44.1"
+          curl --fail --silent --show-error --location \
+            "https://github.com/yonaskolb/XcodeGen/releases/download/${VERSION}/xcodegen.zip" \
+            --output /tmp/xcodegen.zip
+          rm -rf /tmp/xcodegen
+          mkdir -p /tmp/xcodegen "$HOME/bin"
+          unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
+          BINARY="$(find /tmp/xcodegen -type f -name xcodegen -perm -111 | head -n 1)"
+          test -n "$BINARY"
+          cp "$BINARY" "$HOME/bin/xcodegen"
+          chmod +x "$HOME/bin/xcodegen"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          test "$("$HOME/bin/xcodegen" version)" = "$VERSION"
 
-      - name: Build App for iOS (Release)
+      - name: Generate Xcode project
         run: |
-          xcodebuild build \
+          set -euo pipefail
+          xcodegen generate --spec project.yml
+          test -d BurnGB.xcodeproj
+          xcodebuild -project BurnGB.xcodeproj -list
+
+      - name: Run unit tests with Swift 6 strict concurrency
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          xcodebuild test \
             -project BurnGB.xcodeproj \
             -scheme BurnGB \
-            -configuration Release \
-            -sdk iphoneos \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
             -derivedDataPath ./DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
+            SWIFT_STRICT_CONCURRENCY=complete \
+            | tee ./xcodebuild-test.log
 
-      - name: Package IPA
+      - name: Archive for device
         run: |
-          APP_PATH=$(find ./DerivedData/Build/Products/Release-iphoneos -name "BurnGB.app" -type d | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            echo "Error: BurnGB.app not found!"
-            exit 1
-          fi
-          echo "Found app at: $APP_PATH"
+          set -euo pipefail
+          set -o pipefail
+          xcodebuild archive \
+            -project BurnGB.xcodeproj \
+            -scheme BurnGB \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath ./output/BurnGB.xcarchive \
+            -derivedDataPath ./DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            SWIFT_STRICT_CONCURRENCY=complete \
+            | tee ./xcodebuild-archive.log
 
-          mkdir -p output/Payload
-          cp -r "$APP_PATH" output/Payload/
+      - name: Package and validate unsigned IPA
+        run: |
+          set -euo pipefail
+          APP_PATH="./output/BurnGB.xcarchive/Products/Applications/BurnGB.app"
+          test -d "$APP_PATH"
+          test -d "$APP_PATH/PlugIns/BurnGBWidget.appex"
+          test -f "$APP_PATH/Info.plist"
 
-          # Ad-hoc sign the bundle and any embedded appex/frameworks
-          codesign --force --deep --sign - output/Payload/BurnGB.app || true
+          APP_IDENTIFIER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")
+          echo "App identifier: $APP_IDENTIFIER"
+          test "$APP_IDENTIFIER" = "com.hubpde.BurnGB"
 
-          cd output
-          zip -r -9 BurnGB.ipa Payload
-          cd ..
+          mkdir -p ./output/Payload
+          ditto "$APP_PATH" ./output/Payload/BurnGB.app
+          (
+            cd ./output
+            /usr/bin/zip -r -9 BurnGB.ipa Payload
+          )
+          test -s ./output/BurnGB.ipa
+          unzip -l ./output/BurnGB.ipa | grep -F 'Payload/BurnGB.app/PlugIns/BurnGBWidget.appex/'
+          ls -lh ./output/BurnGB.ipa
 
-          ls -lh output/BurnGB.ipa
-
-      - name: Upload IPA Artifact
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BurnGB.ipa
+          name: BurnGB-unsigned-ipa-${{ github.run_number }}
           path: output/BurnGB.ipa
           if-no-files-found: error
+          retention-days: 14
 
-      - name: Create Release and Upload Asset
-        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
-        uses: softprops/action-gh-release@v2
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          files: output/BurnGB.ipa
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: BurnGB-build-diagnostics-${{ github.run_number }}
+          path: |
+            xcodebuild-test.log
+            xcodebuild-archive.log
+            output/BurnGB.xcarchive/Info.plist
+          if-no-files-found: ignore
+          retention-days: 14

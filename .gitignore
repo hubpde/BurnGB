@@ -1,9 +1,8 @@
-# Xcode
+# Xcode 构建产物
 .DS_Store
 build/
 DerivedData/
 *.xcworkspace
-!BurnGB.xcodeproj/project.xcworkspace
 *.xcuserdatad
 *.xcuserstate
 xcuserdata/
@@ -11,11 +10,12 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 
-# Fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
+# XcodeGen 生成的工程（CI 每次从 project.yml 生成）
+BurnGB.xcodeproj
+
+# CI 输出
+output/
+xcodebuild-*.log
 
 # Swift Package Manager
 .build/
@@ -23,5 +23,8 @@ Packages/
 Package.pins
 Package.resolved
 
-# XcodeGen
-BurnGB.xcodeproj
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output

@@ -1,123 +1,109 @@
-# BurnGB 🔥
+# BurnGB
 
-<p align="center">
-  <b>iOS 原生高性能网络流量消耗与多出口测速工具</b>
-</p>
+> 面向 **iOS 26 及以上** 的原生网络流量吞吐工具。
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Platform-iOS%2017%2B-blue?style=flat-square&logo=apple" alt="Platform">
-  <img src="https://img.shields.io/badge/Swift-5.10%2B-orange?style=flat-square&logo=swift" alt="Swift">
-  <img src="https://img.shields.io/badge/UI-Pure%20SwiftUI%20Native-purple?style=flat-square" alt="SwiftUI">
-  <img src="https://img.shields.io/badge/Live%20Activity-Dynamic%20Island-green?style=flat-square" alt="Dynamic Island">
-  <img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions%20IPA-black?style=flat-square&logo=githubactions" alt="CI">
-</p>
+BurnGB 使用 Swift 6、SwiftUI、Swift Concurrency、ActivityKit、BackgroundTasks 和 Swift Charts 编写。界面使用 iOS 26 官方 Liquid Glass API；网络层采用 actor 隔离和精确配额账本；后台执行只使用 Apple 官方系统任务，不使用静音音频保活。
 
----
+## 功能
 
-## 📖 项目简介
+- 前台多 worker HTTPS 流式吞吐任务，支持 1～64 个并发 worker。
+- 共享 URLSession delegate 数据通道：只读取每个 Data 分块的长度，随后立即释放内容。
+- 配额账本在 actor 内原子裁剪，统计不会因为并发分块超过展示上限。
+- 基于 `ContinuousClock` 的可取消带宽预约限速。
+- 节点搜索、自定义 HTTPS 节点、并发节点延时探测。
+- 多出口公网 IP 小探针诊断。
+- Swift Charts 吞吐历史与动态字体/辅助功能支持。
+- iOS 26 Liquid Glass：`glassEffect`、`GlassEffectContainer`、`.glass` / `.glassProminent` 系统按钮样式。
+- ActivityKit 实时活动与 Dynamic Island：compact、minimal、expanded、锁屏和横幅形态。
+- App Group checkpoint：应用重启后保留最后可靠的任务状态。
+- iOS 26 `BGContinuedProcessingTask`：用户从前台明确开始后，请求系统继续处理网络任务。
+- `URLSessionConfiguration.background` + `URLSessionDownloadTask` 有限 Range 片段降级通道。
 
-**BurnGB** 是一款专为 iOS 设计的**纯原生网络流量消耗与带宽基准测试应用**。项目采用 **Swift + SwiftUI + Swift Concurrency** 编写，遵循 Apple 官方 Human Interface Guidelines，采用 100% 纯原生简洁美学设计，并深度适配 **iOS 官方实时活动（Live Activity with Frequent Updates）与灵动岛（Dynamic Island）全场景**。
+## 重要的 iOS 系统边界
 
----
+BurnGB 不会也不能绕过 iOS 的后台策略：
 
-## ✨ 核心特性
+1. **Live Activity 只负责显示，不负责让 App 常驻后台。** `NSSupportsLiveActivitiesFrequentUpdates` 也不是“每秒更新”或后台执行权限。
+2. **BGContinuedProcessingTask 是系统管理的 best-effort 长任务。** 它必须由前台用户操作触发，可能排队、提交失败、过期、被系统终止或受资源策略影响。
+3. **后台 URLSession 是有限文件下载机制。** 它由系统独立进程调度，必须使用 `URLSessionDownloadTask`，不支持用 DataTask/AsyncBytes 做无限后台流；用户强制退出 App 时系统可能取消任务。
+4. **没有官方 API 保证无限期、无间断、固定速率的后台流量消耗。** BurnGB 会在系统允许的窗口内尽最大官方能力继续运行，并在界面和实时活动中显示真实的等待/过期/中断状态。
+5. 应用层收到的字节数不等同于运营商最终计费字节，协议开销、压缩、缓存和网络策略都会造成差异。
 
-- 📱 **100% 官方原生设计美学（Pure Native SwiftUI）**：
-  - 采用标准 iOS 分组布局、系统级层次颜色与 SF Pro 排版，纯净克制、清晰易读。
-  - 触感引擎（Haptics）交互反馈。
-- 🏝️ **官方实时活动与灵动岛（Live Activity & Dynamic Island）**：
-  - 开启 `NSSupportsLiveActivitiesFrequentUpdates`，前后台高频推送最新网速与用量。
-  - **紧凑形态（Compact）**：微小点火指示器 + 实时网速。
-  - **极简形态（Minimal）**：灵动岛单一能量火焰。
-  - **展开形态（Expanded）**：节点名称、并发线程、定量进度条、累计消耗量与速率。
-  - **锁屏横幅（Lock Screen Activity）**：原生锁屏实时掌控测速进度。
-- ⚡ **极致性能与内存零增长（Zero-Memory Allocation）**：
-  - 针对大流量消耗设计的流式读取引擎，分块统计后即刻丢弃数据，即使单次消耗 **100GB / 1TB** 内存仍稳定维持在 **~15MB**，杜绝 OOM 闪退。
-- 🚀 **1~64 线程动态并发**：
-  - 支持在运行中动态滑块调节并发线程，实时拉满千兆 5G / Wi-Fi 7 带宽。
-- 🎯 **智能定量自动切断**：
-  - 支持预设（500MB、1GB、5GB、10GB、50GB 等）或自定义流量额度，达到目标自动停止并触发振动通知。
-- 🎛️ **带宽限速控制**：
-  - 内置令牌桶平滑限速算法，可限制拉取速率（如 50Mbps、100Mbps、300Mbps），避免挤占日常网络。
-- 🌐 **多出口 IP 探测与延时测试**：
-  - 一键探测国内直连出口与 Cloudflare 全球出口 IP、ASN 归属地，支持全节点 Ping 延时测试。
-- 📈 **实时吞吐走势折线图**：
-  - 实时绘制 60 秒带宽走势与速率预测（每分钟/每小时/每天/每月）。
+请只使用自己拥有或明确获授权的 HTTPS 测速端点，并自行承担产生的流量费用。
 
----
-
-## 🏗️ 架构与目录结构
+## 目录
 
 ```text
 BurnGB/
-├── .github/workflows/build-ipa.yml  # GitHub Actions 自动化编译打包 IPA 流程
-├── project.yml                      # XcodeGen 自动化工程配置
-├── README.md                        # 完整说明文档
+├── project.yml                         # XcodeGen 工程定义，iOS 26 / Swift 6
 ├── BurnGB/
-│   ├── BurnGBApp.swift              # App 入口
-│   ├── Models/
-│   │   ├── BurnNode.swift           # 内置与自定义节点数据模型
-│   │   ├── BurnState.swift          # 流量、速率格式化与预测计算
-│   │   ├── IPInfo.swift             # 多出口 IP 探测模型
-│   │   └── BurnActivityAttributes.swift # 灵动岛共享数据契约
-│   ├── Engine/
-│   │   ├── BurnEngine.swift         # 零内存多线程并发流式核心
-│   │   ├── SpeedLimiter.swift       # 令牌桶带宽限速器
-│   │   └── IPDiscoveryService.swift # IP 探测与 Ping 测量服务
+│   ├── App/
+│   │   ├── BurnGBApp.swift             # SwiftUI 入口与 scenePhase
+│   │   ├── AppDelegate.swift            # BGTask 注册和 URLSession 事件桥接
+│   │   └── AppModel.swift                # @MainActor @Observable 应用状态
+│   ├── Background/
+│   │   ├── ContinuedProcessingCoordinator.swift
+│   │   └── BackgroundTransferCoordinator.swift
+│   ├── LiveActivity/
+│   │   └── LiveActivityCoordinator.swift
+│   ├── UI/
+│   │   ├── RootTabView.swift             # 自适应 Tab/Sidebar 导航
+│   │   ├── Dashboard/                    # 主工作台、指标、图表和配置
+│   │   ├── Nodes/                        # 节点列表和编辑
+│   │   ├── Diagnostics/                  # 出口和节点诊断
+│   │   └── Settings/                     # 设置与关于
 │   ├── DesignSystem/
-│   │   ├── LiquidGradients.swift    # 原生主题配色定义
-│   │   ├── LiquidGlassCard.swift    # 原生分组卡片修饰器
-│   │   ├── LiquidGlassButton.swift  # 原生质感按钮
-│   │   ├── LiquidGlassSlider.swift  # 原生滑块组件
-│   │   ├── LiquidGaugeView.swift    # 速率大数字视图
-│   │   └── HapticManager.swift      # 触感反馈管理器
-│   ├── Views/
-│   │   ├── MainDashboardView.swift  # 主控制仪表盘视图
-│   │   ├── NodeSelectionView.swift  # 节点选择与 Ping 延时测试
-│   │   ├── QuantitativeLimitSheet.swift # 定量上限配置弹窗
-│   │   ├── SpeedLimiterSheet.swift  # 带宽限速配置弹窗
-│   │   ├── SpeedChartView.swift     # 实时吞吐走势折线图
-│   │   ├── IPInfoView.swift         # 多出口 IP 诊断视图
-│   │   ├── SettingsView.swift       # 设置与偏好视图
-│   │   └── AboutView.swift          # 关于与免责声明
+│   │   └── BurnTheme.swift               # 官方 Liquid Glass 组件
 │   └── Resources/
-│       ├── Info.plist               # 权限声明、Live Activity 频繁更新与 ProMotion 配置
-│       └── BurnGB.entitlements      # App Group 配置
-└── BurnGBWidget/                    # 灵动岛与实时活动 Widget Extension
-    ├── BurnGBWidgetBundle.swift     # Widget Bundle 入口
-    ├── BurnActivityWidget.swift     # 紧凑/极简/展开岛屿与锁屏卡片
-    └── Info.plist                   # Widget 扩展声明
+│       ├── Info.plist
+│       ├── BurnGB.entitlements
+│       └── PrivacyInfo.xcprivacy
+├── BurnGBCore/                           # App/Widget 共享静态 framework 源码
+│   ├── Domain/                            # Sendable 任务模型与节点
+│   ├── Formatting/                        # 数值格式化
+│   ├── Networking/                        # actor 引擎、传输器、账本、限速、探针
+│   ├── LiveActivity/                      # ActivityAttributes 数据契约
+│   └── Persistence/                       # App Group checkpoint
+├── BurnGBWidget/                          # ActivityKit / Dynamic Island 扩展
+├── BurnGBTests/                            # Swift/XCTest 核心单元测试
+└── .github/workflows/build-ipa.yml        # Xcode 26 CI、测试、归档和 IPA
 ```
 
----
+## 构建
 
-## 🚀 自动化构建与 IPA 导出（GitHub Actions）
+Ubuntu 环境不需要也不能运行 Xcode。推送到 GitHub 后，Actions 会在 macOS runner 上：
 
-本项目已配置好 **GitHub Actions CI/CD**，无需本地拥有 Mac 或 Xcode 环境：
+1. 选择 Xcode 26。
+2. 安装固定版本的 XcodeGen。
+3. 生成 `BurnGB.xcodeproj`。
+4. 使用 Swift 6 strict concurrency 执行单元测试。
+5. 归档 iOS device Release 构建。
+6. 检查 Widget 扩展是否嵌入到 `BurnGB.app/PlugIns`。
+7. 生成并上传 `BurnGB-unsigned-ipa-<run number>` artifact。
 
-1. **推送代码到 GitHub 仓库**：
-   ```bash
-   git push origin main
-   ```
-2. **自动触发编译打包**：
-   - 打开 GitHub 仓库的 **Actions** 标签页。
-   - 工作流将在 macOS Runner 中自动调用 `xcodegen` 生成项目并完成 Release 编译与 IPA 打包。
-3. **下载 IPA**：
-   - 编译完成后，在 Actions 页面底部的 **Artifacts** 即可直接下载 **`BurnGB.ipa`**。
+工作流默认生成的是**未配置用户 Team/Profile 的 unsigned sideload artifact**，不是 TestFlight/App Store 签名包。要进行正式分发，需要在自己的 Apple Developer Team 下配置 provisioning profile、签名证书和 `exportOptions.plist`。
 
----
+## ActivityKit 更新说明
 
-## 📱 自签安装方式
+App 前台或 `BGContinuedProcessingTask` 获得系统执行时间时，BurnGB 使用本地 `Activity.update` 更新状态。实时活动只传输原始数值、时间和状态，由 Widget 本地格式化，并使用 `context.isStale` 提示数据过期。
 
-下载导出的 `BurnGB.ipa` 后，可通过以下常用自签工具安装到 iPhone / iPad：
+项目同时申请 `pushType: .token` 并保存 token，为接入自己的 APNs 服务端预留接口。仓库不包含 APNs 服务端，因此 App 被挂起或终止后不会虚假承诺每秒远程更新。若接入服务端，仍需遵守 ActivityKit 的频繁推送预算和系统节流策略。
 
-- **TrollStore**（巨魔免重签永久安装，推荐）
-- **AltStore / AltServer**
-- **Sideloadly**
-- **牛蛙助手 / 爱思助手**
+## 版本与平台
 
----
+- 最低部署版本：iOS 26.0 / iPadOS 26.0
+- Swift：6.0
+- UI：SwiftUI + iOS 26 Liquid Glass
+- 实时活动：ActivityKit
+- 后台：BGContinuedProcessingTask、Background URLSession（有限分段降级）
+- 当前版本暂不提供自定义 App 图标
 
-## ⚠️ 免责声明
+## 参考
 
-本项目仅供学习研究、网络基准吞吐测试、带宽故障排查以及个人套餐富余流量自用测试。严禁将本项目用于对未授权服务器进行压力测试或任何破坏性用途。使用本工具产生的一切流量资费及法律责任由使用者自行承担。
+- [Apple：Applying Liquid Glass to custom views](https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views)
+- [Apple：glassEffect](https://developer.apple.com/documentation/swiftui/view/glasseffect%28_%3Ain%3A%29)
+- [Apple：GlassEffectContainer](https://developer.apple.com/documentation/swiftui/glasseffectcontainer)
+- [Apple：Displaying live data with Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
+- [Apple：Starting and updating Live Activities with ActivityKit push notifications](https://developer.apple.com/documentation/ActivityKit/starting-and-updating-live-activities-with-activitykit-push-notifications)
+- [Apple：Performing long-running tasks on iOS and iPadOS](https://developer.apple.com/documentation/BackgroundTasks/performing-long-running-tasks-on-ios-and-ipados)
+- [Apple：Downloading files in the background](https://developer.apple.com/documentation/foundation/downloading-files-in-the-background)

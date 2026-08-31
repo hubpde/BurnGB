@@ -1,185 +1,188 @@
 //
 //  BurnActivityWidget.swift
-//  BurnGBWidget
+//  BurnGB
 //
-//  Created for BurnGB - iOS Native Edition.
+//  iOS 26 官方实时活动与灵动岛界面。
 //
 
-import WidgetKit
 import SwiftUI
-#if canImport(ActivityKit)
+import WidgetKit
 import ActivityKit
+import BurnGBCore
 
-/// 官方灵动岛（Dynamic Island）与实时活动（Live Activity）Widget 组件
+/// BurnGB 实时活动 Widget。
 struct BurnActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: BurnActivityAttributes.self) { context in
-            // MARK: - 1. 锁屏与横幅通知展示形态（官方原生设计）
-            lockScreenBanner(context: context)
+            lockScreenView(context: context)
         } dynamicIsland: { context in
-            // MARK: - 2. 灵动岛各形态动态适配
             DynamicIsland {
-                // MARK: 展开形态 - 左侧区域
+                // 展开态左侧：节点和 worker 数。
                 DynamicIslandExpandedRegion(.leading) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.orange)
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(context.attributes.nodeName)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-
-                            Text("\(context.state.activeThreads) 线程")
-                                .font(.system(size: 10))
-                                .foregroundColor(.secondary)
-                        }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label("BurnGB", systemImage: "arrow.down.circle.fill")
+                            .font(.headline)
+                        Text(context.attributes.nodeName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                        Text("\(context.state.activeWorkers) 个 worker")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(.leading, 4)
                 }
 
-                // MARK: 展开形态 - 右侧区域
+                // 展开态右侧：当前速率。
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(context.state.formattedSpeed)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundColor(.blue)
-
-                        Text(context.state.formattedBitrate)
-                            .font(.system(size: 10, design: .monospaced))
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(ByteFormatting.bytesPerSecond(context.state.speedBytesPerSecond).text)
+                            .font(.headline)
+                            .monospacedDigit()
+                            .foregroundStyle(.blue)
+                        Text(ByteFormatting.bitsPerSecond(context.state.speedBytesPerSecond).text)
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(.trailing, 4)
                 }
 
-                // MARK: 展开形态 - 中间定量进度条
+                // 展开态中央：配额进度或累计值。
                 DynamicIslandExpandedRegion(.center) {
-                    if let quotaStr = context.attributes.formattedQuota {
-                        VStack(spacing: 3) {
-                            ProgressView(value: context.state.progress, total: 1.0)
+                    if let quota = context.state.quotaBytes, quota > 0 {
+                        VStack(spacing: 4) {
+                            ProgressView(value: progress(for: context.state), total: 1)
                                 .tint(.orange)
-
                             HStack {
-                                Text("已耗 \(context.state.formattedBurned)")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.white)
+                                Text(ByteFormatting.bytes(context.state.totalBytes).text)
                                 Spacer()
-                                Text("目标 \(quotaStr)")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(.secondary)
+                                Text(ByteFormatting.bytes(quota).text)
                             }
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
                         }
-                        .padding(.horizontal, 6)
-                        .padding(.top, 2)
+                    } else {
+                        Text("累计 \(ByteFormatting.bytes(context.state.totalBytes).text)")
+                            .font(.subheadline.weight(.semibold))
+                            .monospacedDigit()
                     }
                 }
 
-                // MARK: 展开形态 - 底部状态
+                // 展开态底部：状态与运行时长。
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack {
-                        HStack(spacing: 4) {
-                            Circle()
-                                .fill(context.state.isRunning && !context.state.isPaused ? Color.green : Color.orange)
-                                .frame(width: 6, height: 6)
-                            Text(context.state.isRunning ? (context.state.isPaused ? "已暂停" : "全速拉取中") : "已就绪")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        }
-
+                        Label(statusText(context.state), systemImage: statusSymbol(context.state))
+                            .font(.caption)
+                            .foregroundStyle(context.isStale ? .secondary : .primary)
                         Spacer()
-
-                        Text("累计: \(context.state.formattedBurned)")
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundColor(.orange)
+                        Text(context.state.startedAt, style: .timer)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.top, 2)
                 }
             } compactLeading: {
-                // MARK: 紧凑左侧（火焰图标）
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.orange)
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(.orange)
             } compactTrailing: {
-                // MARK: 紧凑右侧（实时速率）
-                Text(context.state.formattedSpeed)
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundColor(.blue)
+                Text(ByteFormatting.bytesPerSecond(context.state.speedBytesPerSecond).text)
+                    .font(.caption2.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.blue)
             } minimal: {
-                // MARK: 极简形态（单一能量火焰）
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.orange)
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(.orange)
             }
+            .widgetURL(URL(string: "burngb://dashboard"))
         }
     }
 
-    // MARK: - 3. 锁屏实时活动横幅（官方标准原生设计）
+    /// 锁屏实时活动视图，使用系统提供的背景容器，不自绘伪玻璃。
     @ViewBuilder
-    private func lockScreenBanner(context: ActivityViewContext<BurnActivityAttributes>) -> some View {
-        VStack(spacing: 10) {
-            // 顶部节点与速率
+    private func lockScreenView(
+        context: ActivityViewContext<BurnActivityAttributes>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                HStack(spacing: 6) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(.orange)
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("BurnGB")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(context.attributes.nodeName)
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
-                }
-
+                Label("BurnGB", systemImage: "arrow.down.circle.fill")
+                    .font(.headline)
                 Spacer()
-
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(context.state.formattedSpeed)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(.blue)
-                    Text(context.state.formattedBitrate)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
+                Text(ByteFormatting.bytesPerSecond(context.state.speedBytesPerSecond).text)
+                    .font(.headline)
+                    .monospacedDigit()
+                    .foregroundStyle(.blue)
             }
 
-            // 进度与用量
-            if let quotaStr = context.attributes.formattedQuota {
-                VStack(spacing: 3) {
-                    ProgressView(value: context.state.progress, total: 1.0)
-                        .tint(.orange)
+            HStack {
+                Text(context.attributes.nodeName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Spacer()
+                Text(statusText(context.state))
+                    .font(.caption)
+                    .foregroundStyle(context.isStale ? .secondary : .primary)
+            }
 
-                    HStack {
-                        Text("已消耗 \(context.state.formattedBurned)")
-                            .font(.system(size: 10, weight: .medium))
-                        Spacer()
-                        Text("目标 \(quotaStr)")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
+            if let quota = context.state.quotaBytes, quota > 0 {
+                ProgressView(value: progress(for: context.state), total: 1)
+                    .tint(.orange)
+                HStack {
+                    Text("已消耗 \(ByteFormatting.bytes(context.state.totalBytes).text)")
+                    Spacer()
+                    Text("目标 \(ByteFormatting.bytes(quota).text)")
                 }
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
             } else {
                 HStack {
-                    Text("累计消耗: \(context.state.formattedBurned)")
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundColor(.orange)
+                    Text("累计 \(ByteFormatting.bytes(context.state.totalBytes).text)")
                     Spacer()
-                    Text("\(context.state.activeThreads) 线程并发")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                    Text("运行 ") + Text(context.state.startedAt, style: .timer)
                 }
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+            }
+
+            if context.isStale {
+                Label("等待系统更新", systemImage: "clock.badge.exclamationmark")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
-        .padding(14)
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
+        .padding()
+        .containerBackground(for: .widget) {
+            Color.clear
+        }
+        .widgetURL(URL(string: "burngb://dashboard"))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("BurnGB 网络流量消耗")
+        .accessibilityValue("\(ByteFormatting.bytesPerSecond(context.state.speedBytesPerSecond).text)，累计 \(ByteFormatting.bytes(context.state.totalBytes).text)")
+    }
+
+    private func progress(for state: BurnActivityAttributes.ContentState) -> Double {
+        guard let quota = state.quotaBytes, quota > 0 else { return 0 }
+        return min(max(Double(state.totalBytes) / Double(quota), 0), 1)
+    }
+
+    private func statusText(_ state: BurnActivityAttributes.ContentState) -> String {
+        switch state.phase {
+        case .running: return state.backgroundState == .running ? "后台运行中" : "消耗中"
+        case .starting: return "启动中"
+        case .paused: return "已暂停"
+        case .completed: return "已完成"
+        case .failed: return "发生错误"
+        case .stopping: return "正在停止"
+        case .idle: return "已就绪"
+        }
+    }
+
+    private func statusSymbol(_ state: BurnActivityAttributes.ContentState) -> String {
+        switch state.phase {
+        case .running, .starting: "arrow.down"
+        case .paused: "pause"
+        case .completed: "checkmark"
+        case .failed: "exclamationmark.triangle"
+        case .stopping: "stop"
+        case .idle: "circle"
+        }
     }
 }
-#endif

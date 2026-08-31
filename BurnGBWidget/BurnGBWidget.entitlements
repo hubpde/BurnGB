@@ -2,13 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- App 与 Widget 共享后台 checkpoint 与实时状态快照。 -->
+	<!-- Widget 与宿主 App 使用同一共享容器恢复状态。 -->
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.com.hubpde.BurnGB</string>
 	</array>
-	<!-- 使用 pushType.token 时由 Team 的签名配置替换为 development/production。 -->
-	<key>aps-environment</key>
-	<string>development</string>
 </dict>
 </plist>

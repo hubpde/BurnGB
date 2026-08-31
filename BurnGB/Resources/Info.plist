@@ -2,11 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- 开启 ProMotion 120Hz 刷新率支持 -->
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
+	<!-- BurnGB 只支持 iOS 26 及以上，使用系统 Liquid Glass 与持续处理任务 API。 -->
 	<key>CFBundleDevelopmentRegion</key>
-	<string>zh_CN</string>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>BurnGB</string>
 	<key>CFBundleExecutable</key>
@@ -20,29 +18,26 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<!-- 网络请求安全配置，允许加载自定义 HTTP/HTTPS 测速节点 -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<!-- iOS 官方实时活动（Live Activity）与灵动岛支持 -->
+	<!-- 只接受 HTTPS 节点，不再全局放开 ATS。 -->
 	<key>NSSupportsLiveActivities</key>
 	<true/>
-	<!-- 允许实时活动高频频繁更新（Frequent Updates） -->
 	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
 	<true/>
-	<!-- 后台模式声明（后台拉取与后台处理，不使用音频保活） -->
+	<!-- iOS 26 BGContinuedProcessingTask 所需的 processing 能力。 -->
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.hubpde.BurnGB.continued-processing</string>
+	</array>
+	<!-- 使用系统生成的简洁启动屏，不依赖自定义图片资源。 -->
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>
