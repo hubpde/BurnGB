@@ -138,24 +138,24 @@ public final class BackgroundKeepAlive: NSObject, AVAudioPlayerDelegate {
 
         // "fmt " sub-chunk
         data.append(contentsOf: "fmt ".utf8)
-        var subchunk1Size: Int32 = 16.littleEndian
+        var subchunk1Size = Int32(16).littleEndian
         data.append(Data(bytes: &subchunk1Size, count: 4))
-        var audioFormat: Int16 = 1.littleEndian // PCM
+        var audioFormat = Int16(1).littleEndian // PCM
         data.append(Data(bytes: &audioFormat, count: 2))
-        var numChannels = channels.littleEndian
+        var numChannels = Int16(channels).littleEndian
         data.append(Data(bytes: &numChannels, count: 2))
-        var sampleRateBytes = sampleRate.littleEndian
+        var sampleRateBytes = Int32(sampleRate).littleEndian
         data.append(Data(bytes: &sampleRateBytes, count: 4))
-        var byteRate = (sampleRate * Int32(channels) * Int32(bitsPerSample / 8)).littleEndian
+        var byteRate = Int32(sampleRate * Int32(channels) * Int32(bitsPerSample / 8)).littleEndian
         data.append(Data(bytes: &byteRate, count: 4))
-        var blockAlign = (channels * (bitsPerSample / 8)).littleEndian
+        var blockAlign = Int16(channels * (bitsPerSample / 8)).littleEndian
         data.append(Data(bytes: &blockAlign, count: 2))
-        var bitsPerSampleBytes = bitsPerSample.littleEndian
+        var bitsPerSampleBytes = Int16(bitsPerSample).littleEndian
         data.append(Data(bytes: &bitsPerSampleBytes, count: 2))
 
         // "data" sub-chunk
         data.append(contentsOf: "data".utf8)
-        var dataSizeBytes = subchunk2Size.littleEndian
+        var dataSizeBytes = Int32(subchunk2Size).littleEndian
         data.append(Data(bytes: &dataSizeBytes, count: 4))
 
         // 填充全零 PCM 静音数据
