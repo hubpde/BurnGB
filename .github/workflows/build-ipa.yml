@@ -34,22 +34,11 @@ jobs:
           xcrun --sdk iphoneos --show-sdk-version
           swift --version
 
-      - name: Install pinned XcodeGen release
+      - name: Install XcodeGen
         run: |
           set -euo pipefail
-          VERSION="2.44.1"
-          curl --fail --silent --show-error --location \
-            "https://github.com/yonaskolb/XcodeGen/releases/download/${VERSION}/xcodegen.zip" \
-            --output /tmp/xcodegen.zip
-          rm -rf /tmp/xcodegen
-          mkdir -p /tmp/xcodegen "$HOME/bin"
-          unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
-          BINARY="$(find /tmp/xcodegen -type f -name xcodegen -perm -111 | head -n 1)"
-          test -n "$BINARY"
-          cp "$BINARY" "$HOME/bin/xcodegen"
-          chmod +x "$HOME/bin/xcodegen"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
-          test "$("$HOME/bin/xcodegen" version)" = "$VERSION"
+          brew install xcodegen
+          xcodegen version
 
       - name: Generate Xcode project
         run: |
