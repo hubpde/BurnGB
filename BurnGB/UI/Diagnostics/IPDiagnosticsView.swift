@@ -81,7 +81,8 @@ struct IPDiagnosticsView: View {
                 }
                 .disabled(model.isProbingNodes)
 
-                ForEach(model.nodes) { node in
+                let nodes = model.nodes
+                ForEach(nodes) { node in
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(node.name)
@@ -94,7 +95,7 @@ struct IPDiagnosticsView: View {
                         if let result = model.probeResults[node.id] {
                             Text(result.latencyMilliseconds.map { "\($0) ms" } ?? "失败")
                                 .font(.caption.monospacedDigit())
-                                .foregroundStyle(result.isReachable ? .secondary : .red)
+                                .foregroundStyle(result.isReachable ? Color.secondary : Color.red)
                         }
                     }
                 }

@@ -58,7 +58,7 @@ struct HeroMetricView: View {
                     .foregroundStyle(.secondary)
             }
 
-            if snapshot.quotaBytes != nil {
+            if let quota = snapshot.quotaBytes {
                 Gauge(value: progress, in: 0...1) {
                     Text("定量进度")
                 } currentValueLabel: {
@@ -67,9 +67,7 @@ struct HeroMetricView: View {
                 } minimumValueLabel: {
                     Text(ByteFormatting.bytes(snapshot.totalBytes).text)
                 } maximumValueLabel: {
-                    if let quota = snapshot.quotaBytes {
-                        Text(ByteFormatting.bytes(quota).text)
-                    }
+                    Text(ByteFormatting.bytes(quota).text)
                 }
                 .gaugeStyle(.accessoryLinearCapacity)
                 .tint(.orange)

@@ -34,7 +34,7 @@ struct NodePickerSheetView: View {
                             } label: {
                                 HStack(spacing: 12) {
                                     Image(systemName: node.symbolName)
-                                        .foregroundStyle(model.selectedNode.id == node.id ? .orange : .secondary)
+                                        .foregroundStyle(model.selectedNode.id == node.id ? Color.orange : Color.secondary)
                                         .frame(width: 24)
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(node.name)

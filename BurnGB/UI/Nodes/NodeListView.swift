@@ -78,7 +78,7 @@ struct NodeListView: View {
     private func nodeRow(_ node: BurnNode) -> some View {
         HStack(spacing: 12) {
             Image(systemName: node.symbolName)
-                .foregroundStyle(model.selectedNode.id == node.id ? .orange : .secondary)
+                .foregroundStyle(model.selectedNode.id == node.id ? Color.orange : Color.secondary)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 3) {
@@ -102,7 +102,7 @@ struct NodeListView: View {
             if let result = model.probeResults[node.id] {
                 Text(result.latencyMilliseconds.map { "\($0) ms" } ?? "失败")
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(result.isReachable ? .secondary : .red)
+                    .foregroundStyle(result.isReachable ? Color.secondary : Color.red)
             }
         }
         .contentShape(Rectangle())
