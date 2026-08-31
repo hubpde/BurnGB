@@ -38,8 +38,8 @@ final class LiveActivityCoordinator {
                 await oldActivity.end(nil, dismissalPolicy: .immediate)
             }
         }
-        observe(newest)
-        observePushToken(newest)
+        observeActivity()
+        observePushToken()
     }
 
     /// 前台点火后申请带 push token 的实时活动。
@@ -65,8 +65,8 @@ final class LiveActivityCoordinator {
             )
             activity = requested
             generation = UUID()
-            observe(requested)
-            observePushToken(requested)
+            observeActivity()
+            observePushToken()
         } catch {
             print("[LiveActivityCoordinator] 实时活动申请失败：\(error.localizedDescription)")
         }
@@ -84,14 +84,14 @@ final class LiveActivityCoordinator {
                 guard let self,
                       self.generation == currentGeneration,
                       let nextSnapshot = self.queuedSnapshot,
-                      let activity = self.activity,
+                      let currentActivity = self.activity,
                       let runID = nextSnapshot.runID else {
                     break
                 }
 
                 self.queuedSnapshot = nil
                 let state = self.makeState(snapshot: nextSnapshot, runID: runID)
-                await activity.update(
+                await currentActivity.update(
                     ActivityContent(
                         state: state,
                         staleDate: Date().addingTimeInterval(15)
@@ -114,19 +114,22 @@ final class LiveActivityCoordinator {
         stateTask = nil
         await pendingUpdateTask?.value
 
-        guard let activity else { return }
-        self.activity = nil
-        generation = UUID()
-        await activity.end(nil, dismissalPolicy: .immediate)
+        if let currentActivity = activity {
+            activity = nil
+            generation = UUID()
+            await currentActivity.end(nil, dismissalPolicy: .immediate)
+        }
     }
 
-    private func observe(_ activity: Activity<BurnActivityAttributes>) {
+    private func observeActivity() {
+        guard let currentActivity = activity else { return }
+        let observedID = currentActivity.id
         stateTask?.cancel()
-        stateTask = Task { @MainActor [weak self, activity] in
-            for await state in activity.activityStateUpdates {
+        stateTask = Task { @MainActor [weak self] in
+            for await state in currentActivity.activityStateUpdates {
                 guard !Task.isCancelled else { return }
                 if state == .ended || state == .dismissed {
-                    if self?.activity?.id == activity.id {
+                    if self?.activity?.id == observedID {
                         self?.activity = nil
                     }
                     return
@@ -135,10 +138,11 @@ final class LiveActivityCoordinator {
         }
     }
 
-    private func observePushToken(_ activity: Activity<BurnActivityAttributes>) {
+    private func observePushToken() {
+        guard let currentActivity = activity else { return }
         tokenTask?.cancel()
-        tokenTask = Task { @MainActor [weak self, activity] in
-            for await token in activity.pushTokenUpdates {
+        tokenTask = Task { @MainActor [weak self] in
+            for await token in currentActivity.pushTokenUpdates {
                 guard !Task.isCancelled else { return }
                 let value = token.map { String(format: "%02x", $0) }.joined()
                 self?.tokenDefaults?.set(value, forKey: "burngb.activity.push-token")
